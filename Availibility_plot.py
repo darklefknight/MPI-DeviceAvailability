@@ -24,7 +24,8 @@ BCO_START_DATE = dt(2010,1,1)
 #
 # Set up data
 
-NC_FILE = "C:/Users/darkl/Dropbox/MPI/Availability/Availability.nc"
+#NC_FILE = "C:/Users/darkl/Dropbox/MPI/Availability/Availability.nc"
+NC_FILE = "Availability.nc"
 
 nc = Dataset(NC_FILE, mode="r")
 
@@ -108,19 +109,22 @@ select.width = 200
 
 xmax = dates[-1]
 xmin = xmax - timedelta(365)
+
 tool_box = "xbox_zoom,xpan,xwheel_zoom,undo,redo,reset,save"
-p1 = figure(title=Devices_names[0], title_location='left', tools=tool_box, x_range=(xmin, xmax), y_range=(1, 2),
+
+p1 = figure(title=Devices_names[0], title_location='left', tools=tool_box, x_range=Range1d(start=xmin, end=xmax), y_range=(1, 2),
             responsive=True,x_axis_type='datetime')
+
 p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12 = [
-    figure(title=Devices_names[i + 1], title_location='left', tools=tool_box, x_range=p1.x_range, y_range=p1.y_range)
+    figure(title=Devices_names[i + 1], title_location='left', tools=tool_box, x_range=p1.x_range, y_range=p1.y_range, responsive=True,x_axis_type='datetime')
     for i in range(len(Devices) - 1)]
 p_list = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
 #              x_range=[0, 4*np.pi], y_range=[-2.5, 2.5])
 
-p1.x_range.min_interval = 30
-p1.x_range.max_interval = len(ASCA)
+# p1.x_range.min_interval = 30
+# p1.x_range.max_interval = len(ASCA)
 
-p1.line(dates,[0 for x in range(len(ASCA))])
+# p1.line(dates,[0 for x in range(len(ASCA))])
 
 
 for p, device, dev_name in zip(p_list, Devices, Devices_names):
@@ -136,12 +140,12 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):
            fill_alpha=0.8)
     #p.vbar(dates, 0.5, 3, line_color=colors[dev_name], fill_color=colors[dev_name], line_alpha=0.8,
      #      fill_alpha=0.8)
-    p.xaxis.formatter=DatetimeTickFormatter(
-        hours=["%d %B %Y"],
-        days=["%d %B %Y"],
-        months=["%d %B %Y"],
-        years=["%d %B %Y"],
-    )
+    # p.xaxis.formatter=DatetimeTickFormatter(
+    #     hours=["%d %B %Y"],
+    #     days=["%d %B %Y"],
+    #     months=["%d %B %Y"],
+    #     years=["%d %B %Y"],
+    # )
     p.xaxis.visible = True
     p.xgrid.grid_line_color = None
     p.ygrid.grid_line_color = None
@@ -182,8 +186,9 @@ def update_range(attrname, old, new):
         else:
             xmin = 0
 
-    p1.x_range.start = xmin
-    p1.x_range.end = xmax
+    # p1.x_range.start = xmin
+    # p1.x_range.end = xmax
+    p1.x_range = Range1d(start=xmin, end=xmax)
 
 
 
