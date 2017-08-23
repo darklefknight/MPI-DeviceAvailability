@@ -11,6 +11,7 @@ def daterange(start_date, end_date):
         yield start_date + timedelta(n)
 
 
+
 if __name__ == "__main__":
     start = dt(2017, 1, 1)
     end = dt(2017, 6, 1)
