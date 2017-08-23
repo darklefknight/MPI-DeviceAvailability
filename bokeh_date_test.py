@@ -3,7 +3,7 @@ from bokeh.layouts import row
 from datetime import timedelta
 from datetime import datetime as dt
 from bokeh.plotting import figure
-from bokeh.models import DatetimeTickFormatter
+from bokeh.models import DatetimeTickFormatter, Range1d
 import numpy as np
 
 def daterange(start_date, end_date):
@@ -14,6 +14,7 @@ def daterange(start_date, end_date):
 if __name__ == "__main__":
     start = dt(2017, 1, 1)
     end = dt(2017, 6, 1)
+    end_range = dt(2017,10,1)
 
     dates = [x for x in daterange(start, end)]
     data = [x for x in range(len(dates))]
@@ -24,6 +25,7 @@ if __name__ == "__main__":
 
     p1 = figure(title='test1',x_axis_type='datetime')
     p1.line(dates,data)
+    p1.x_range=(Range1d(start=start, end=end_range))
     # p1.xaxis.formatter = DatetimeTickFormatter(
     #     hours=["%d %B %Y"],
     #     days=["%d %B %Y"],
