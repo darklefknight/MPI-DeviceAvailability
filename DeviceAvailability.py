@@ -104,7 +104,6 @@ if not os.path.isfile(NC_FILE):
     start_date = BCO_START_DATE
     end_date = date.today()+timedelta(days=1) # "+ timedelta(days=1)" is for today actually being included in the loop
 else:
-    
     nc_file = Dataset(NC_FILE, mode="r")
     nc_date_str= str(nc_file.variables['strftime'][-1])
     nc_year = int(nc_date_str[:4])
@@ -119,7 +118,7 @@ else:
     print('Found netCDF-File %s - Just appending missing data.' %(NC_FILE))
     
 #end_date = date(2017,1,1) #for testing
-#end_date = date(2013,1,1) #for testing
+# end_date = date(2010,2,1) #for testing
 
 #%%
 dates = []
@@ -239,6 +238,11 @@ def create_netCDF(nc_name,path_name='',dates=dates):
         time_fill.append((date_obj-datetime.datetime(1970,1,1).date()).total_seconds())
         strftime.append((date_obj.strftime("%Y%m%d")))
         numtime.append(mdate.date2num(date_obj))
+
+    numtime = np.asarray(numtime,dtype="f8")
+    time_fill = np.asarray(time_fill, dtype="f8")
+    strftime = np.asarray(strftime,dtype="S8")
+
         
     
     #Create global attributes
@@ -249,24 +253,24 @@ def create_netCDF(nc_name,path_name='',dates=dates):
     nc.creation_date	= time.asctime()
     nc.version		="1.0.0"
     
-    #Create dimensions 																							
+    #Create dimensions
     time_dim 	  = nc.createDimension('time', None)
     
     #Create variable
-    time_var 					          = nc.createVariable('time','f8',('time',), fill_value=MISSING_VALUE, zlib=False)
+    time_var 					          = nc.createVariable('time','f8',('time',))
     time_var.units                   = "Seconds since 1970-1-1 0:00:00 UTC"
     time_var.CoordinateAxisType      = "Time"
     time_var.calendar 			      = "Standard"
     
-    strftime_var                     = nc.createVariable('strftime','s4',('time',), fill_value=MISSING_VALUE, zlib=False)
+    strftime_var                     = nc.createVariable('strftime','S8',('time',))
     strftime_var.units               = "YYYYMMDD"
     strftime_var.CoordinateAxisType  = "Time"    
     
-    numtime_var                      = nc.createVariable('numtime','f8',('time',), fill_value=MISSING_VALUE, zlib=True)
+    numtime_var                      = nc.createVariable('numtime','f8',('time',))
     numtime_var.units                = "Days since 0001-01-01 00:00:00 UTC, plus one" 
     numtime_var.description          = "This is Pythons matplotlib standard. Use matplotlib.dates.num2date() to get a datetime-object."    
     numtime_var.CoordinateAxisType   = "Time"    
-    time_var.calendar 			      = "Gregorian"
+    time_var.calendar 			     = "Gregorian"
 
     time_var[:]     = time_fill[:]
     strftime_var[:] = strftime[:]
@@ -294,6 +298,10 @@ def appendToNetCDF(nc_name,path_name,Devices,dates=dates):
         time_fill.append((date_obj-datetime.datetime(1970,1,1).date()).total_seconds())
         strftime.append((date_obj.strftime("%Y%m%d")))
         numtime.append(mdate.date2num(date_obj))
+
+    numtime = np.asarray(numtime,dtype="f8")
+    time_fill = np.asarray(time_fill, dtype="f8")
+    strftime = np.asarray(strftime,dtype="S8")
     
     nc_length_old = len(nc.variables['time']) 
     nc_length_new = len(dates) + nc_length_old
@@ -316,7 +324,7 @@ def WriteAttrToNetCDF(nc_name,path_name,Device):
     MISSING_VALUE = 999
     nc = Dataset(path_name+nc_name,mode='a',format='NETCDF4')
     
-    dev_var                = nc.createVariable(Device.varname(),'u1',('time',), fill_value=MISSING_VALUE, zlib=True)
+    dev_var                = nc.createVariable(Device.varname(),'u1',('time',))
     dev_var.long_name      = Device.name()
     dev_var.description    = "shows the Availability of the " + Device.name()
     
