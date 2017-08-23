@@ -237,7 +237,7 @@ def create_netCDF(nc_name,path_name='',dates=dates):
     strftime = []
     for date_obj in dates:
         time_fill.append((date_obj-datetime.datetime(1970,1,1).date()).total_seconds())
-        strftime.append(int(date_obj.strftime("%Y%m%d")))
+        strftime.append((date_obj.strftime("%Y%m%d")))
         numtime.append(mdate.date2num(date_obj))
         
     
@@ -253,12 +253,12 @@ def create_netCDF(nc_name,path_name='',dates=dates):
     time_dim 	  = nc.createDimension('time', None)
     
     #Create variable
-    time_var 					          = nc.createVariable('time','f8',('time',), fill_value=MISSING_VALUE, zlib=True)
+    time_var 					          = nc.createVariable('time','f8',('time',), fill_value=MISSING_VALUE, zlib=False)
     time_var.units                   = "Seconds since 1970-1-1 0:00:00 UTC"
     time_var.CoordinateAxisType      = "Time"
     time_var.calendar 			      = "Standard"
     
-    strftime_var                     = nc.createVariable('strftime','u4',('time',), fill_value=MISSING_VALUE, zlib=True)
+    strftime_var                     = nc.createVariable('strftime','s4',('time',), fill_value=MISSING_VALUE, zlib=False)
     strftime_var.units               = "YYYYMMDD"
     strftime_var.CoordinateAxisType  = "Time"    
     
@@ -292,7 +292,7 @@ def appendToNetCDF(nc_name,path_name,Devices,dates=dates):
     strftime = []
     for date_obj in dates:
         time_fill.append((date_obj-datetime.datetime(1970,1,1).date()).total_seconds())
-        strftime.append(int(date_obj.strftime("%Y%m%d")))
+        strftime.append((date_obj.strftime("%Y%m%d")))
         numtime.append(mdate.date2num(date_obj))
     
     nc_length_old = len(nc.variables['time']) 
@@ -301,7 +301,7 @@ def appendToNetCDF(nc_name,path_name,Devices,dates=dates):
     for i,j in zip(range(nc_length_old,nc_length_new),range(len(time_fill))):
         nc.variables['time'][i]     = time_fill[j]
         nc.variables['strftime'][i] = strftime[j]
-        print(i,j,nc.variables['strftime'][i])
+        # print(i,j,nc.variables['strftime'][i])
         nc.variables['numtime'][i] = numtime[j]
         for Device in Devices:
             nc.variables[Device.varname()][i] = Device.avail()[j]
