@@ -7,13 +7,16 @@ Created on Thu Jul 20 10:04:23 2017
 """
 
 from datetime import date, timedelta
+
 import numpy as np
 import os 
 import matplotlib.pyplot as plt
 import glob
-import matplotlib.dates as mdate
+from netCDF4 import Dataset
+import sys
 
-BCO_START_DATE = date(2001,1,1)
+BCO_START_DATE = date(2010,1,1)
+#BCO_START_DATE = date(2016,1,1) # for testing
 NC_NAME = 'Availability.nc'
 NC_PATH = ''
 
@@ -87,21 +90,47 @@ Radiation = Device('Radiation','Radiation Sensors', Radiation_path)
 Disdro = Device('Disdro','Disdrometer',Disdro_path)
 
 #%%
+
+
 def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
         yield start_date + timedelta(n)
+        
+#%%
+#Check if full scan is necessary
+NC_FILE = NC_PATH + NC_NAME
+if not os.path.isfile(NC_FILE):
+    print('No previous Data found. Scanning whole timerange.')
+    start_date = BCO_START_DATE
+    end_date = date.today()+timedelta(days=1) # "+ timedelta(days=1)" is for today actually being included in the loop
+else:
+    
+    nc_file = Dataset(NC_FILE, mode="r")
+    nc_date_str= str(nc_file.variables['strftime'][-1])
+    nc_year = int(nc_date_str[:4])
+    nc_month = int(nc_date_str[4:6])
+    nc_day = int(nc_date_str[6:8])
+    start_date = date(nc_year,nc_month,nc_day) + timedelta(days=1)
+    end_date = date.today()+timedelta(days=1) # "+ timedelta(days=1)" is for today actually being included in the loop
+    nc_file.close()
+    if start_date >= end_date:
+        print('The File is already up to date. Delete the file first to start a complete new scan.')
+        sys.exit()
+    print('Found netCDF-File %s - Just appending missing data.' %(NC_FILE))
+    
+#end_date = date(2017,1,1) #for testing
+#end_date = date(2013,1,1) #for testing
 
-start_date = BCO_START_DATE
-end_date = date.today()
+#%%
 dates = []
 
 for single_date in daterange(start_date, end_date):
     days +=1
 #    print(single_date.strftime("%Y-%m-%d"))
     date_str = single_date.strftime("%Y%m%d")
-    day_str = single_date.strftime("%d")
-    month_str = single_date.strftime("%m")
-    year_str = single_date.strftime("%Y")
+    day_str  = single_date.strftime("%d")
+    month_str  = single_date.strftime("%m")
+    year_str  = single_date.strftime("%Y")
     dates.append(single_date)
     
     #Check for Allsky-imager:
@@ -120,7 +149,7 @@ for single_date in daterange(start_date, end_date):
         
     #Check for HATPRO:
     HATPRO_path_date = HATPRO_path + year_str[2:4] + month_str + "/" + year_str[2:4] + month_str + day_str
-    if os.path.isdir(HATPRO_path):
+    if os.path.isdir(HATPRO_path_date):
         HATPRO._AvailabilityAppend(1)   
     else:
         HATPRO._AvailabilityAppend(0)  
@@ -221,7 +250,7 @@ def create_netCDF(nc_name,path_name='',dates=dates):
     nc.version		="1.0.0"
     
     #Create dimensions 																							
-    time_dim 	  = nc.createDimension('time', len(dates))
+    time_dim 	  = nc.createDimension('time', None)
     
     #Create variable
     time_var 					          = nc.createVariable('time','f8',('time',), fill_value=MISSING_VALUE, zlib=True)
@@ -244,10 +273,44 @@ def create_netCDF(nc_name,path_name='',dates=dates):
     numtime_var[:]  = numtime[:]
      
     #Close netCDF-file
-    nc.close()       
+    nc.close()  
+#%%     
+    
+def appendToNetCDF(nc_name,path_name,Devices,dates=dates):
+    from netCDF4 import Dataset
+    import time    
+    import os
+    import datetime
+    import matplotlib.dates as mdate
+    
+    MISSING_VALUE = 999
+    
+    nc = Dataset(path_name+nc_name,mode='a',format='NETCDF4')
+
+    numtime = []    
+    time_fill = []
+    strftime = []
+    for date_obj in dates:
+        time_fill.append((date_obj-datetime.datetime(1970,1,1).date()).total_seconds())
+        strftime.append(int(date_obj.strftime("%Y%m%d")))
+        numtime.append(mdate.date2num(date_obj))
+    
+    nc_length_old = len(nc.variables['time']) 
+    nc_length_new = len(dates) + nc_length_old
+    print(nc_length_old,nc_length_new)
+    for i,j in zip(range(nc_length_old,nc_length_new),range(len(time_fill))):
+        nc.variables['time'][i]     = time_fill[j]
+        nc.variables['strftime'][i] = strftime[j]
+        print(i,j,nc.variables['strftime'][i])
+        nc.variables['numtime'][i] = numtime[j]
+        for Device in Devices:
+            nc.variables[Device.varname()][i] = Device.avail()[j]
+     
+    #Close netCDF-file
+    nc.close()  
 
 #%%
-def appendToNetCDF(nc_name,path_name,Device):
+def WriteAttrToNetCDF(nc_name,path_name,Device):
     from netCDF4 import Dataset
     
     MISSING_VALUE = 999
@@ -261,11 +324,28 @@ def appendToNetCDF(nc_name,path_name,Device):
     nc.close()
     
 #%%
+def AppendAttrToNetCDF(nc_name,path_name,Device):
+    from netCDF4 import Dataset
+    
+    nc = Dataset(path_name+nc_name,mode='a',format='NETCDF4')
+    
+    nc_length_old = len(nc.variables[Device.varname()])
+    nc_length_new = len(Device.avail()) + nc_length_old
+    for i,j in zip(range(nc_length_old,nc_length_new),range(len(Device.avail()))):
+        nc.variables[Device.varname()][i] = Device.avail()[j]
+    
+    nc.close()
+    
+#%%
+if not os.path.isfile(NC_FILE):  #Create netCDF-file if none exists
+    create_netCDF(NC_NAME,NC_PATH)        
+    for Sensor in Devices:
+        WriteAttrToNetCDF(NC_NAME,NC_PATH,Sensor)
+    
+else:               #if a netCDF-file already exists append the data
+    appendToNetCDF(NC_NAME,NC_PATH,Devices)
 
-create_netCDF(NC_NAME,NC_PATH)     
 
-for Sensor in Devices:
-    appendToNetCDF(NC_NAME,NC_PATH,Sensor)
 
 
         
