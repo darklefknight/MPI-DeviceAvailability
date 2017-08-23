@@ -7,11 +7,11 @@ Created on Thu Jul 20 10:04:23 2017
 """
 
 from datetime import date, timedelta
-
 import numpy as np
 import os 
 import matplotlib.pyplot as plt
 import glob
+import matplotlib.dates as mdate
 
 BCO_START_DATE = date(2001,1,1)
 NC_NAME = 'Availability.nc'
@@ -99,9 +99,9 @@ for single_date in daterange(start_date, end_date):
     days +=1
 #    print(single_date.strftime("%Y-%m-%d"))
     date_str = single_date.strftime("%Y%m%d")
-    day_str  = single_date.strftime("%d")
-    month_str  = single_date.strftime("%m")
-    year_str  = single_date.strftime("%Y")
+    day_str = single_date.strftime("%d")
+    month_str = single_date.strftime("%m")
+    year_str = single_date.strftime("%Y")
     dates.append(single_date)
     
     #Check for Allsky-imager:
