@@ -9,14 +9,14 @@ Created on Mon Aug  7 11:04:45 2017
 import numpy as np
 from bokeh.io import curdoc, show
 from bokeh.layouts import row, widgetbox
-from bokeh.models import ColumnDataSource, Range1d, DatetimeTickFormatter,Title
+from bokeh.models import ColumnDataSource, Range1d, DatetimeTickFormatter,Title, HoverTool
 from bokeh.models.widgets import Slider, TextInput, Dropdown, Select
 from bokeh.layouts import gridplot, layout, column
 from bokeh.plotting import figure
 from bokeh.models.glyphs import Text
 from netCDF4 import Dataset
 import matplotlib.dates as mdate
-from datetime import date, timedelta
+from datetime import date, timedelta, timezone
 from datetime import datetime as dt
 
 #BCO_START_DATE = date(2010, 1, 1)
@@ -95,11 +95,11 @@ def daterange2(start_date,days):
     for n in range(int(days)):
         yield start_date + timedelta(n)
 
-dates = [x for x in daterange2(BCO_START_DATE,len(ASCA))]
-dates = np.asarray(dates)
 
+tz = timezone(offset=timedelta(hours=0),name='UTC')
 dates = np.asarray(time)
-
+for i in range(len(dates)):
+    dates[i] = dt.replace(dates[i],tzinfo=None)
 
 # %%
 # Set up plot
@@ -112,13 +112,21 @@ select.width = 200
 xmax = dates[-1]
 xmin = xmax - timedelta(365)
 
-tool_box = "xbox_zoom,xpan,xwheel_zoom,undo,redo,reset,save"
+toolbox = "xbox_zoom,xpan,xwheel_zoom,undo,redo,reset,save"
+hover = HoverTool(tooltips=[
+        ("date","@dates")],
+    formatters={
+    "date" : "datetime"
+    },
+    mode = "vline")
 
-p1 = figure(title=Devices_names[0], title_location='left', tools=tool_box, x_range=Range1d(start=xmin, end=xmax), y_range=(1, 2),
+
+
+p1 = figure(title=Devices_names[0], title_location='left', tools=toolbox, x_range=Range1d(start=xmin, end=xmax), y_range=(1, 2),
             responsive=True,x_axis_type='datetime')
 
 p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12 = [
-    figure(title=Devices_names[i + 1], title_location='left', tools=tool_box, x_range=p1.x_range, y_range=p1.y_range, responsive=True,x_axis_type='datetime')
+    figure(title=Devices_names[i + 1], title_location='left',tools=toolbox, x_range=p1.x_range, y_range=p1.y_range, responsive=True,x_axis_type='datetime')
     for i in range(len(Devices) - 1)]
 p_list = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
 #              x_range=[0, 4*np.pi], y_range=[-2.5, 2.5])
@@ -126,20 +134,25 @@ p_list = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
 p1.x_range.min_interval = 30
 p1.x_range.max_interval = len(ASCA)
 
+
 # p1.line(dates,[0 for x in range(len(ASCA))])
 
 
 for p, device, dev_name in zip(p_list, Devices, Devices_names):
     #    p.cross([x for x in daterange(start_date,end_date)],device,size=40, line_cap='butt', line_alpha=0.6, line_color=colors[dev_name], fill_color=colors[dev_name])
     p.name = dev_name
+    p.toolbar_location = "right"
+
+
     p.yaxis.axis_label = dev_name
     p.yaxis.visible = False
     p.yaxis.axis_line_color = None
     p.yaxis.major_tick_line_color = None
     p.yaxis.minor_tick_line_color = None
     p.yaxis.major_label_text_color = None
-    p.vbar(dates[device == 1], 0.5, 3, line_color=colors[dev_name], fill_color=colors[dev_name], line_alpha=0.8,
-           fill_alpha=0.8)
+
+    vbars = p.vbar(dates[device == 1], width=1,line_width=20, top=3, line_color=colors[dev_name], fill_color=colors[dev_name], line_alpha=0.95,
+           fill_alpha=0.95)
 
     p.xaxis.formatter=DatetimeTickFormatter(
          hours=["%d %b %y"],
@@ -149,26 +162,20 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):
      )
 
     p.xaxis.visible = True
-    p.xgrid.grid_line_color = None
+    p.xgrid.grid_line_color = 'black'
+    p.xgrid.grid_line_alpha = 1
     p.ygrid.grid_line_color = None
     p.outline_line_color = None
     p.xaxis.axis_line_color = None
 
-
     p.xaxis.major_tick_line_color = 'black'  # turn off x-axis major ticks
     p.xaxis.minor_tick_line_color = 'black'  # turn off x-axis minor ticks
-
-    # p.xaxis.axis_label = dev_name
-    # p.xaxis.axis_label_standoff = -75
-    # p.xaxis.axis_label_text_align = "left"
-    # p.xaxis.axis_label_text_font_style = "bold"
-    #
-    # p.add_layout(Title(text=dev_name, align="left"),"center")
-
+    p.xaxis.major_tick_in = 100
 
     p.plot_width = 1300
     p.plot_height = 100
     p.sizing_mode = "scale_width"
+
 
 
 grid = gridplot([
