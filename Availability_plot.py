@@ -175,7 +175,7 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):
     p.xaxis.major_tick_in = 100
 
     p.plot_width = 1300
-    p.plot_height = 70
+    p.plot_height = 75
     p.sizing_mode = "scale_width"
 
     p.title_location = 'left'
