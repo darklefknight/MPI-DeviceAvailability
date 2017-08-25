@@ -61,7 +61,7 @@ class Device:
 MBR2_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/16_Cloud_radar_MBR2/"
 WindLidar_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/15_Wind_lidar/Proc/"
 ASCA_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/1_Allskyimager/data/"
-Ceilometer_path = "/data/mpi/mpiaes/obs/ACPC/Ceilometer/Level_1/"
+Ceilometer_path = "/data/mpi/mpiaes/obs/ACPC/Ceilometer/Level_1/" #TODO: <-WRONG PATH. Search for unprocessed data, not level1
 HATPRO_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/4_Microwave_radiometer_HATPRO/"
 KATRIN_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/5_Cloud_radar_KATRIN/data/"
 KIT_path = "/data/mpi/mpiaes/obs/ACPC/KIT-WORA/Data/"
@@ -70,7 +70,8 @@ MRR_path2 = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/7_Rain_radar_MRR/Deebl
 WxSensor_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/12_Weathersensors/"
 Radiation_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/14_Radiation/"
 Disdro_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/17_Disdrometer/"
-RamanLidar_path = "/data/mpi/mpiaes/obs/ACPC/RamanLidar-LICHT/HiRes/preProcessed/"
+RamanLidar_path = "/data/mpi/mpiaes/obs/ACPC/RamanLidar-LICHT/HiRes/preProcessed/" #TODO: Add the right Path
+
 
 #%%
 #Set up Classes for each Device
@@ -161,8 +162,9 @@ for single_date in daterange(start_date, end_date):
         KATRIN._AvailabilityAppend(0)  
         
     #Check for KIT:
-    KIT_file= glob.glob(KIT_path + date_str[2:] + "/" + year_str[:2] + "_*")
-    if len(KIT_file) >= 1:
+    KIT_file= KIT_path + date_str[2:]
+    if os.path.isdir(KIT_file):
+    # if len(KIT_file) >= 1:
         KIT._AvailabilityAppend(1)     
     else:
         KIT._AvailabilityAppend(0)  
@@ -305,7 +307,7 @@ def appendToNetCDF(nc_name,path_name,Devices,dates=dates):
     
     nc_length_old = len(nc.variables['time']) 
     nc_length_new = len(dates) + nc_length_old
-    print(nc_length_old,nc_length_new)
+    # print(nc_length_old,nc_length_new)
     for i,j in zip(range(nc_length_old,nc_length_new),range(len(time_fill))):
         nc.variables['time'][i]     = time_fill[j]
         nc.variables['strftime'][i] = strftime[j]

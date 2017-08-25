@@ -9,7 +9,7 @@ Created on Mon Aug  7 11:04:45 2017
 import numpy as np
 from bokeh.io import curdoc, show
 from bokeh.layouts import row, widgetbox
-from bokeh.models import ColumnDataSource, Range1d, DatetimeTickFormatter,Title, HoverTool
+from bokeh.models import ColumnDataSource, Range1d, DatetimeTickFormatter,Title, HoverTool,SaveTool
 from bokeh.models.widgets import Slider, TextInput, Dropdown, Select
 from bokeh.layouts import gridplot, layout, column
 from bokeh.plotting import figure
@@ -106,13 +106,13 @@ for i in range(len(dates)):
 years = end_date.year - start_date.year + 1
 menu1 = ["last 365 days", "last 30 days", "Complete Timerange"] + ["%i" % (i + start_date.year) for i in range(years)]
 
-select = Select(title="Select Timerange", value=("last 365 days"), options=menu1)
+select = Select(title="Select Timerange", value=("last 365 days"), options=menu1) #TODO: Change title-size (not so easy jet)
 select.width = 200
 
 xmax = dates[-1]
 xmin = xmax - timedelta(365)
 
-toolbox = "xbox_zoom,xpan,xwheel_zoom,undo,redo,reset,save"
+toolbox = "xbox_zoom"
 hover = HoverTool(tooltips=[
         ("date","@dates")],
     formatters={
@@ -122,20 +122,19 @@ hover = HoverTool(tooltips=[
 
 
 
-p1 = figure(title=Devices_names[0], title_location='left', tools=toolbox, x_range=Range1d(start=xmin, end=xmax), y_range=(1, 2),
+
+
+p1 = figure(title=Devices_names[0], tools=toolbox, x_range=Range1d(start=xmin, end=xmax), y_range=(1, 2),
             responsive=True,x_axis_type='datetime')
 
 p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12 = [
-    figure(title=Devices_names[i + 1], title_location='left',tools=toolbox, x_range=p1.x_range, y_range=p1.y_range, responsive=True,x_axis_type='datetime')
+    figure(title=Devices_names[i + 1],tools=toolbox, x_range=p1.x_range, y_range=p1.y_range, responsive=True,x_axis_type='datetime')
     for i in range(len(Devices) - 1)]
 p_list = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
-#              x_range=[0, 4*np.pi], y_range=[-2.5, 2.5])
 
-p1.x_range.min_interval = 30
-p1.x_range.max_interval = len(ASCA)
+p1.x_range.min_interval = timedelta(days=7)
+p1.x_range.max_interval = timedelta(days=len(dates))
 
-
-# p1.line(dates,[0 for x in range(len(ASCA))])
 
 
 for p, device, dev_name in zip(p_list, Devices, Devices_names):
@@ -145,7 +144,7 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):
 
 
     p.yaxis.axis_label = dev_name
-    p.yaxis.visible = False
+    p.yaxis.visible = True
     p.yaxis.axis_line_color = None
     p.yaxis.major_tick_line_color = None
     p.yaxis.minor_tick_line_color = None
@@ -154,12 +153,15 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):
     vbars = p.vbar(dates[device == 1], width=1,line_width=20, top=3, line_color=colors[dev_name], fill_color=colors[dev_name], line_alpha=0.95,
            fill_alpha=0.95)
 
+
     p.xaxis.formatter=DatetimeTickFormatter(
          hours=["%d %b %y"],
          days=["%d %b %y"],
          months=["%b %y"],
          years=["%Y"],
      )
+
+
 
     p.xaxis.visible = True
     p.xgrid.grid_line_color = 'black'
@@ -173,10 +175,18 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):
     p.xaxis.major_tick_in = 100
 
     p.plot_width = 1300
-    p.plot_height = 100
+    p.plot_height = 70
     p.sizing_mode = "scale_width"
 
+    p.title_location = 'left'
+    p.title.visible = False
 
+
+
+
+
+
+del p_list[8] #TODO: add the right path for RamanLidar! This just excludes wrong Ramanlidar data from being plotted.
 
 grid = gridplot([
     [x] for x in [select] + p_list]
@@ -214,5 +224,5 @@ def update_range(attrname, old, new):
 select.on_change('value', update_range)
 curdoc().add_root(grid)
 curdoc().title = "Device Availability"
-#show(grid)
+# show(grid)
 
