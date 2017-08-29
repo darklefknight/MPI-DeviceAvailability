@@ -14,11 +14,12 @@ import matplotlib.pyplot as plt
 import glob
 from netCDF4 import Dataset
 import sys
+import asyncio
 
 BCO_START_DATE = date(2010,1,1)
 #BCO_START_DATE = date(2016,1,1) # for testing
 NC_NAME = 'Availability.nc'
-NC_PATH = ''
+NC_PATH = "/scratch/local1/m300517/DeviceAvailability/"
 
 Devices = []
 days = 0
@@ -97,8 +98,109 @@ Disdro = Device('Disdro','Disdrometer',Disdro_path)
 def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
         yield start_date + timedelta(n)
-        
-#%%
+
+dates = []
+async def get_availability(start_date,end_date):
+    days = 0
+    for single_date in daterange(start_date, end_date):
+        days += 1
+        #    print(single_date.strftime("%Y-%m-%d"))
+        date_str = single_date.strftime("%Y%m%d")
+        day_str = single_date.strftime("%d")
+        month_str = single_date.strftime("%m")
+        year_str = single_date.strftime("%Y")
+        dates.append(single_date)
+
+        # Check for Allsky-imager:
+        ASCA_file = glob.glob(ASCA_path + "cc" + year_str[2:4] + month_str + "/" + day_str + "/*" + year_str[
+                                                                                                    2:4] + month_str + day_str + ".tgz")
+        if len(ASCA_file) >= 1:
+            ASCA._AvailabilityAppend(1)
+        else:
+            ASCA._AvailabilityAppend(0)
+
+            # Check for Ceilometer:
+        Ceilo_file = glob.glob(Ceilometer_path + year_str + "/" + month_str + "/" + "CHM*" + day_str + ".dat")
+        if len(Ceilo_file) >= 1:
+            Ceilometer._AvailabilityAppend(1)
+        else:
+            Ceilometer._AvailabilityAppend(0)
+
+            # Check for HATPRO:
+        HATPRO_path_date = HATPRO_path + year_str[2:4] + month_str + "/" + year_str[2:4] + month_str + day_str
+        if os.path.isdir(HATPRO_path_date):
+            HATPRO._AvailabilityAppend(1)
+        else:
+            HATPRO._AvailabilityAppend(0)
+
+            # Check for KATRIN:
+        KATRIN_file = glob.glob(KATRIN_path + date_str + "/" + date_str + "_*.*")
+        if len(KATRIN_file) >= 1:
+            KATRIN._AvailabilityAppend(1)
+        else:
+            KATRIN._AvailabilityAppend(0)
+
+            # Check for KIT:
+        KIT_file = KIT_path + date_str[2:]
+        if os.path.isdir(KIT_file):
+            # if len(KIT_file) >= 1:
+            KIT._AvailabilityAppend(1)
+        else:
+            KIT._AvailabilityAppend(0)
+
+            # Check for MBR2:
+        if os.path.isdir(MBR2_path + date_str):
+            MBR2._AvailabilityAppend(1)
+        else:
+            MBR2._AvailabilityAppend(0)
+
+            # Check for MRR:
+        MRR_file1 = glob.glob(MRR_path1 + year_str + month_str + "/" + month_str + day_str + ".*")
+        MRR_file2 = glob.glob(MRR_path2 + year_str + month_str + "/" + month_str + day_str + ".*")
+        if len(MRR_file1) >= 1:
+            MRR._AvailabilityAppend(1)
+        elif len(MRR_file2) >= 1:
+            MRR._AvailabilityAppend(1)
+        else:
+            MRR._AvailabilityAppend(0)
+
+            # Check for Windlidar:
+        WindLidar_path_date = WindLidar_path + year_str + "/" + year_str + month_str + "/" + year_str + month_str + day_str
+        if os.path.isdir(WindLidar_path_date):
+            WindLidar._AvailabilityAppend(1)
+        else:
+            WindLidar._AvailabilityAppend(0)
+
+            # Check for Weather Sensors:
+        WxSensor_file = glob.glob(WxSensor_path + date_str[:-2] + "/*" + date_str + ".wxt")
+        if len(WxSensor_file) >= 1:
+            WxSensor._AvailabilityAppend(1)
+        else:
+            WxSensor._AvailabilityAppend(0)
+
+            # Check for Radiation Sensors:
+        Radiation_file = glob.glob(Radiation_path + date_str[:-2] + "/" + date_str + ".*")
+        if len(Radiation_file) >= 1:
+            Radiation._AvailabilityAppend(1)
+        else:
+            Radiation._AvailabilityAppend(0)
+
+            # Check for Disdrometer:
+        Disdro_file = glob.glob(Disdro_path + "*" + date_str + ".nc")
+        if len(Disdro_file) >= 1:
+            Disdro._AvailabilityAppend(1)
+        else:
+            Disdro._AvailabilityAppend(0)
+
+            # Check for Raman Lidar:
+        Raman_file = glob.glob(RamanLidar_path + "app" + year_str[2:4] + month_str + "/" + "app" + date_str[2:] + ".nc")
+        if len(Raman_file) >= 1:
+            RamanLidar._AvailabilityAppend(1)
+        else:
+            RamanLidar._AvailabilityAppend(0)
+
+
+        #%%
 #Check if full scan is necessary
 NC_FILE = NC_PATH + NC_NAME
 if not os.path.isfile(NC_FILE):
@@ -122,106 +224,9 @@ else:
 #end_date = date(2017,1,1) #for testing
 # end_date = date(2010,2,1) #for testing
 
-#%%
-dates = []
+loop = asyncio.get_event_loop()
+ids = loop.run_until_complete(get_availability(start_date,end_date))
 
-for single_date in daterange(start_date, end_date):
-    days +=1
-#    print(single_date.strftime("%Y-%m-%d"))
-    date_str = single_date.strftime("%Y%m%d")
-    day_str  = single_date.strftime("%d")
-    month_str  = single_date.strftime("%m")
-    year_str  = single_date.strftime("%Y")
-    dates.append(single_date)
-    
-    #Check for Allsky-imager:
-    ASCA_file= glob.glob(ASCA_path + "cc" + year_str[2:4] + month_str + "/" + day_str + "/*" + year_str[2:4] + month_str + day_str + ".tgz")
-    if len(ASCA_file) >= 1:
-        ASCA._AvailabilityAppend(1)
-    else:
-        ASCA._AvailabilityAppend(0)        
-
-    #Check for Ceilometer:
-    Ceilo_file= glob.glob(Ceilometer_path +year_str + "/" + month_str + "/" + "CHM*" + day_str + ".dat")
-    if len(Ceilo_file) >= 1:
-        Ceilometer._AvailabilityAppend(1)
-    else:
-        Ceilometer._AvailabilityAppend(0)  
-        
-    #Check for HATPRO:
-    HATPRO_path_date = HATPRO_path + year_str[2:4] + month_str + "/" + year_str[2:4] + month_str + day_str
-    if os.path.isdir(HATPRO_path_date):
-        HATPRO._AvailabilityAppend(1)   
-    else:
-        HATPRO._AvailabilityAppend(0)  
-        
-    #Check for KATRIN:
-    KATRIN_file= glob.glob(KATRIN_path + date_str + "/" + date_str + "_*.*")
-    if len(KATRIN_file) >= 1:
-        KATRIN._AvailabilityAppend(1)  
-    else:
-        KATRIN._AvailabilityAppend(0)  
-        
-    #Check for KIT:
-    KIT_file= KIT_path + date_str[2:]
-    if os.path.isdir(KIT_file):
-    # if len(KIT_file) >= 1:
-        KIT._AvailabilityAppend(1)     
-    else:
-        KIT._AvailabilityAppend(0)  
-
-    #Check for MBR2:
-    if os.path.isdir(MBR2_path + date_str):
-        MBR2._AvailabilityAppend(1)
-    else:
-        MBR2._AvailabilityAppend(0)  
-        
-    #Check for MRR:
-    MRR_file1= glob.glob(MRR_path1 + year_str + month_str + "/" + month_str + day_str + ".*" )
-    MRR_file2= glob.glob(MRR_path2 + year_str + month_str + "/" + month_str + day_str + ".*" )    
-    if len(MRR_file1) >= 1:
-        MRR._AvailabilityAppend(1)     
-    elif len(MRR_file2) >= 1:
-        MRR._AvailabilityAppend(1) 
-    else:
-        MRR._AvailabilityAppend(0)  
-        
-    #Check for Windlidar:
-    WindLidar_path_date = WindLidar_path + year_str + "/" + year_str + month_str + "/" + year_str + month_str + day_str
-    if os.path.isdir(WindLidar_path_date):
-        WindLidar._AvailabilityAppend(1)
-    else:
-        WindLidar._AvailabilityAppend(0)  
-        
-    #Check for Weather Sensors:
-    WxSensor_file= glob.glob(WxSensor_path + date_str[:-2] + "/*" + date_str + ".wxt")
-    if len(WxSensor_file) >= 1:
-        WxSensor._AvailabilityAppend(1)  
-    else:
-        WxSensor._AvailabilityAppend(0)  
-        
-    #Check for Radiation Sensors:
-    Radiation_file= glob.glob(Radiation_path + date_str[:-2] + "/" + date_str + ".*")
-    if len(Radiation_file) >= 1:
-        Radiation._AvailabilityAppend(1)  
-    else:
-        Radiation._AvailabilityAppend(0)  
-        
-    #Check for Disdrometer:
-    Disdro_file= glob.glob(Disdro_path + "*" + date_str + ".nc")
-    if len(Disdro_file) >= 1:
-        Disdro._AvailabilityAppend(1)   
-    else:
-        Disdro._AvailabilityAppend(0)  
-    
-    #Check for Raman Lidar:
-    Raman_file= glob.glob(RamanLidar_path + "app" + year_str[2:4] + month_str + "/" + "app" + date_str[2:] + ".nc")
-    if len(Raman_file) >= 1:
-        RamanLidar._AvailabilityAppend(1)    
-    else:
-        RamanLidar._AvailabilityAppend(0)  
-
-#%%
 
 def create_netCDF(nc_name,path_name='',dates=dates):
     from netCDF4 import Dataset

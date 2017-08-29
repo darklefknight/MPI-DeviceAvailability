@@ -26,7 +26,8 @@ BCO_START_DATE = dt(2010,1,1)
 # Set up data
 
 #NC_FILE = "C:/Users/darkl/Dropbox/MPI/Availability/Availability.nc"
-NC_FILE = "Availability.nc"
+# NC_FILE = "Availability.nc"
+NC_FILE = '/scratch/local1/m300517/DeviceAvailability/Availability.nc'
 
 nc = Dataset(NC_FILE, mode="r")
 
