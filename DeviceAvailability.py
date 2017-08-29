@@ -61,7 +61,8 @@ class Device:
 MBR2_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/16_Cloud_radar_MBR2/"
 WindLidar_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/15_Wind_lidar/Proc/"
 ASCA_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/1_Allskyimager/data/"
-Ceilometer_path = "/data/mpi/mpiaes/obs/ACPC/Ceilometer/Level_1/" #TODO: <-WRONG PATH. Search for unprocessed data, not level1
+# Ceilometer_path = "/data/mpi/mpiaes/obs/ACPC/Ceilometer/Level_1/" #TODO: <-WRONG PATH. Search for unprocessed data, not level1
+Ceilometer_path = "/data/mpi/mpiaes/obs/ACPC/Ceilometer/CHM140102/"
 HATPRO_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/4_Microwave_radiometer_HATPRO/"
 KATRIN_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/5_Cloud_radar_KATRIN/data/"
 KIT_path = "/data/mpi/mpiaes/obs/ACPC/KIT-WORA/Data/"
@@ -141,7 +142,7 @@ for single_date in daterange(start_date, end_date):
         ASCA._AvailabilityAppend(0)        
 
     #Check for Ceilometer:
-    Ceilo_file= glob.glob(Ceilometer_path + "*" +year_str + month_str + ".nc.bz2")
+    Ceilo_file= glob.glob(Ceilometer_path +year_str + "/" + month_str + "/" + "CHM*" + day_str + ".dat")
     if len(Ceilo_file) >= 1:
         Ceilometer._AvailabilityAppend(1)
     else:
