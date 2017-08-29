@@ -106,11 +106,11 @@ for i in range(len(dates)):
 years = end_date.year - start_date.year + 1
 menu1 = ["last 365 days", "last 30 days", "Complete Timerange"] + ["%i" % (i + start_date.year) for i in range(years)]
 
-select = Select(title="Select Timerange", value=("last 365 days"), options=menu1) #TODO: Change title-size (not so easy jet)
+select = Select(title="Select Timerange", value=("Complete Timerange"), options=menu1) #TODO: Change title-size (not so easy jet)
 select.width = 200
 
 xmax = dates[-1]
-xmin = xmax - timedelta(365)
+xmin = BCO_START_DATE
 
 toolbox = "xbox_zoom"
 hover = HoverTool(tooltips=[
