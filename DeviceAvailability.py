@@ -3,36 +3,54 @@
 """
 Created on Thu Jul 20 10:04:23 2017
 
-@author: m300517
+Usage: Just run it. No arguments required.
+       If the netCDF file with NC_NAME does not exists in NC_PATH, the script will search all data from BCO_START_DATE
+       unti today and create a netCDF4 file with the results.
+       If the file NC_NAME does already exists in NC_PATH, then the script will look if there are time steps to be
+       appended to the file.
+
+@author: Tobias Machnitzki (tobias.machnitzki@mpimet.mpg.de)
 """
-
+# ================Import==================
 from datetime import date, timedelta
-
 import numpy as np
-import os 
-import matplotlib.pyplot as plt
+import os
 import glob
 from netCDF4 import Dataset
 import sys
 import asyncio
 
+#===========Settings====================
 BCO_START_DATE = date(2010,1,1)
-#BCO_START_DATE = date(2016,1,1) # for testing
 NC_NAME = 'Availability.nc'
 NC_PATH = "/scratch/local1/m300517/DeviceAvailability/"
 
 Devices = []
 days = 0
 
-#%%
+#Define Paths:
+MBR2_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/16_Cloud_radar_MBR2/"
+WindLidar_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/15_Wind_lidar/Proc/"
+ASCA_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/1_Allskyimager/data/"
+Ceilometer_path = "/data/mpi/mpiaes/obs/ACPC/Ceilometer/CHM140102/"
+HATPRO_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/4_Microwave_radiometer_HATPRO/"
+KATRIN_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/5_Cloud_radar_KATRIN/data/"
+KIT_path = "/data/mpi/mpiaes/obs/ACPC/KIT-WORA/Data/"
+MRR_path1 = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/7_Rain_radar_MRR/DeeblesPoint_201004-201501/"
+MRR_path2 = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/7_Rain_radar_MRR/DeeblesPoint_201502-today/"
+WxSensor_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/12_Weathersensors/"
+Radiation_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/14_Radiation/"
+Disdro_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/17_Disdrometer/"
+RamanLidar_path = "/data/mpi/mpiaes/obs/ACPC/RamanLidar-LICHT/HiRes/preProcessed/" #TODO: Add the right Path
 
+#============Creating the "Device" Class==============
 class Device:
     """
     Creating a Class for all devices for easy acces of the attributes:
-        name
-        availability
-        launch date
-        termination date
+        -name
+        -varname (variable name which is used in the script)
+        -avail (availability)
+        -filepath
     """
     
     def __init__(self,varname,name, filepath):
@@ -56,27 +74,9 @@ class Device:
     
     def varname(self):
         return self.__varname
-            
-#%%    
-#Define Paths:
-MBR2_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/16_Cloud_radar_MBR2/"
-WindLidar_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/15_Wind_lidar/Proc/"
-ASCA_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/1_Allskyimager/data/"
-# Ceilometer_path = "/data/mpi/mpiaes/obs/ACPC/Ceilometer/Level_1/" #TODO: <-WRONG PATH. Search for unprocessed data, not level1
-Ceilometer_path = "/data/mpi/mpiaes/obs/ACPC/Ceilometer/CHM140102/"
-HATPRO_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/4_Microwave_radiometer_HATPRO/"
-KATRIN_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/5_Cloud_radar_KATRIN/data/"
-KIT_path = "/data/mpi/mpiaes/obs/ACPC/KIT-WORA/Data/"
-MRR_path1 = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/7_Rain_radar_MRR/DeeblesPoint_201004-201501/"
-MRR_path2 = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/7_Rain_radar_MRR/DeeblesPoint_201502-today/"
-WxSensor_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/12_Weathersensors/"
-Radiation_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/14_Radiation/"
-Disdro_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/17_Disdrometer/"
-RamanLidar_path = "/data/mpi/mpiaes/obs/ACPC/RamanLidar-LICHT/HiRes/preProcessed/" #TODO: Add the right Path
 
 
-#%%
-#Set up Classes for each Device
+#========Set up Classes for each Device===================
 ASCA = Device('ASCA','AllskyImager',ASCA_path)    
 Ceilometer = Device('Ceilometer','Ceilometer',Ceilometer_path)
 HATPRO = Device('HATPRO','Microwave Radiometer HATPRO',HATPRO_path)
@@ -86,13 +86,9 @@ MBR2 = Device('MBR2','Cloud Radar MBR2',MBR2_path)
 MRR = Device('MRR','Micro Rain Radar MRR',MRR_path2)
 WindLidar = Device('WindLidar','Wind Lidar', WindLidar_path)
 RamanLidar = Device('RamanLidar','Raman Lidar', RamanLidar_path)
-#Radio_airport
-#Radio_BCO
 WxSensor = Device('WxSensor','Weather Sensors',WxSensor_path)
 Radiation = Device('Radiation','Radiation Sensors', Radiation_path)
 Disdro = Device('Disdro','Disdrometer',Disdro_path)
-
-#%%
 
 
 def daterange(start_date, end_date):
@@ -101,6 +97,13 @@ def daterange(start_date, end_date):
 
 dates = []
 async def get_availability(start_date,end_date):
+    """
+    :param start_date: datetime-obj
+    :param end_date: datetime-obj
+
+    Appending a 1 to the device availability of each class, if data was found on the actual date
+    and a 0 if no data was found for the actual date.
+    """
     days = 0
     for single_date in daterange(start_date, end_date):
         days += 1
@@ -199,9 +202,7 @@ async def get_availability(start_date,end_date):
         else:
             RamanLidar._AvailabilityAppend(0)
 
-
-        #%%
-#Check if full scan is necessary
+#=========Check if full scan is necessary=====================
 NC_FILE = NC_PATH + NC_NAME
 if not os.path.isfile(NC_FILE):
     print('No previous Data found. Scanning whole timerange.')
@@ -220,15 +221,23 @@ else:
         print('The File is already up to date. Delete the file first to start a complete new scan.')
         sys.exit()
     print('Found netCDF-File %s - Just appending missing data.' %(NC_FILE))
-    
-#end_date = date(2017,1,1) #for testing
-# end_date = date(2010,2,1) #for testing
 
-loop = asyncio.get_event_loop()
-ids = loop.run_until_complete(get_availability(start_date,end_date))
 
+loop = asyncio.get_event_loop() # for more information on this visit: https://docs.python.org/3/library/asyncio.html
+ids = loop.run_until_complete(get_availability(start_date,end_date)) #much faster then just iterating over the
+loop.close()
 
 def create_netCDF(nc_name,path_name='',dates=dates):
+    """
+
+    :param nc_name: Name of the netCDF4 file
+    :param path_name: Where the netCDF4 file will be written
+    :param dates: datetime-obj
+
+    This function creates a netCDF4 file.
+    It just defines the structure and fills in the time values, not the actual values
+    for the availability of each instrument.
+    """
     from netCDF4 import Dataset
     import time    
     import os
@@ -251,8 +260,6 @@ def create_netCDF(nc_name,path_name='',dates=dates):
     time_fill = np.asarray(time_fill, dtype="f8")
     strftime = np.asarray(strftime,dtype="S8")
 
-        
-    
     #Create global attributes
     nc.location		= "The Barbados Cloud Observatory, Deebles Point, Barbados"
     nc.converted_by	= "Tobias Machnitzki (tobias.machnitzki@mpimet.mpg.de)"
@@ -280,18 +287,25 @@ def create_netCDF(nc_name,path_name='',dates=dates):
     numtime_var.CoordinateAxisType   = "Time"    
     time_var.calendar 			     = "Gregorian"
 
+    #Fill varaibles with values
     time_var[:]     = time_fill[:]
     strftime_var[:] = strftime[:]
     numtime_var[:]  = numtime[:]
-     
-    #Close netCDF-file
-    nc.close()  
-#%%     
+
+    nc.close()
     
 def appendToNetCDF(nc_name,path_name,Devices,dates=dates):
+    """
+
+    :param nc_name: Name of the netCDF4 file
+    :param path_name: Path where the file will be written to
+    :param Devices: List containing elements of the Device-class
+    :param dates: datetime-obj
+
+    This function appends data to an already existing netCDF4 file.
+    It will append the time-variables as well as the data-variables.
+    """
     from netCDF4 import Dataset
-    import time    
-    import os
     import datetime
     import matplotlib.dates as mdate
     
@@ -307,8 +321,8 @@ def appendToNetCDF(nc_name,path_name,Devices,dates=dates):
         strftime.append((date_obj.strftime("%Y%m%d")))
         numtime.append(mdate.date2num(date_obj))
 
-    numtime = np.asarray(numtime,dtype="f8")
-    time_fill = np.asarray(time_fill, dtype="f8")
+    numtime = np.asarray(numtime,dtype="f8")      #forcing the time-variables into these data-formats solves some issues
+    time_fill = np.asarray(time_fill, dtype="f8") #when reading them later.
     strftime = np.asarray(strftime,dtype="S8")
     
     nc_length_old = len(nc.variables['time']) 
@@ -321,12 +335,19 @@ def appendToNetCDF(nc_name,path_name,Devices,dates=dates):
         nc.variables['numtime'][i] = numtime[j]
         for Device in Devices:
             nc.variables[Device.varname()][i] = Device.avail()[j]
-     
-    #Close netCDF-file
+
     nc.close()  
 
-#%%
+
 def WriteAttrToNetCDF(nc_name,path_name,Device):
+    """
+
+    :param nc_name: Name of the netCDF4 file
+    :param path_name: Path where the file will be written to
+    :param Device: Device-class object
+
+    This function writes the Data of the availability of one Instrument to the netCDF4 file.
+    """
     from netCDF4 import Dataset
     
     MISSING_VALUE = 999
@@ -338,30 +359,13 @@ def WriteAttrToNetCDF(nc_name,path_name,Device):
     
     dev_var[:] = Device.avail()[:]
     nc.close()
+
     
-#%%
-def AppendAttrToNetCDF(nc_name,path_name,Device):
-    from netCDF4 import Dataset
-    
-    nc = Dataset(path_name+nc_name,mode='a',format='NETCDF4')
-    
-    nc_length_old = len(nc.variables[Device.varname()])
-    nc_length_new = len(Device.avail()) + nc_length_old
-    for i,j in zip(range(nc_length_old,nc_length_new),range(len(Device.avail()))):
-        nc.variables[Device.varname()][i] = Device.avail()[j]
-    
-    nc.close()
-    
-#%%
+
 if not os.path.isfile(NC_FILE):  #Create netCDF-file if none exists
     create_netCDF(NC_NAME,NC_PATH)        
     for Sensor in Devices:
-        WriteAttrToNetCDF(NC_NAME,NC_PATH,Sensor)
+        WriteAttrToNetCDF(NC_NAME, NC_PATH, Sensor)
     
 else:               #if a netCDF-file already exists append the data
-    appendToNetCDF(NC_NAME,NC_PATH,Devices)
-
-
-
-
-        
+    appendToNetCDF(NC_NAME, NC_PATH, Devices)
