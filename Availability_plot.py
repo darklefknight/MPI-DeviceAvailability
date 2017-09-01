@@ -15,7 +15,7 @@ Barbados (BCO) site. It therefore needs the netCDF4 file created by the DeviceAv
 # ============Importing ================
 import numpy as np
 from bokeh.io import curdoc, show
-from bokeh.models import Range1d, DatetimeTickFormatter
+from bokeh.models import Range1d, DatetimeTickFormatter, CustomJS
 from bokeh.models.widgets import Select
 from bokeh.layouts import gridplot
 from bokeh.plotting import figure
@@ -23,9 +23,10 @@ from netCDF4 import Dataset
 import matplotlib.dates as mdate
 from datetime import timedelta
 from datetime import datetime as dt
+from bokeh.embed import components
 
 # ==============Set up data================
-NC_FILE = '/scratch/local1/m300517/DeviceAvailability/Availability.nc'  # Path to the netcdf4 file
+NC_FILE = 'Availability.nc'  # Path to the netcdf4 file
 BCO_START_DATE = dt(2010, 1, 1)
 
 nc = Dataset(NC_FILE, mode="r")
@@ -147,12 +148,7 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
 
 del p_list[8]  # TODO: add the right path for RamanLidar! This just excludes wrong Ramanlidar data from being plotted.
 
-grid = gridplot([
-    [x] for x in [select] + p_list]
-)  # builds a grid from all plots and the select-menu
-
-
-# change window to selection:
+# ======= change window to selection: ========================
 def update_range(attrname, old, new):
     '''
     Set up the x-range depending on the chosen entry from
@@ -177,8 +173,17 @@ def update_range(attrname, old, new):
     p1.x_range.start = xmin
     p1.x_range.end = xmax
 
-
 select.on_change('value', update_range)
+
+
+
+
+grid = gridplot([
+    [x] for x in [select] + p_list]
+)  # builds a grid from all plots and the select-menu
+
 curdoc().add_root(grid)
 curdoc().title = "Device Availability"
 # show(grid) # can be used for debugging, but the select menu will not work then
+
+script, div = components(grid)
