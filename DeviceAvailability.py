@@ -22,6 +22,7 @@ import asyncio
 
 # ===========Settings====================
 BCO_START_DATE = date(2010, 1, 1)
+# BCO_START_DATE = date(2017,1,1) #for testing
 NC_NAME = 'Availability.nc'
 NC_PATH = "/scratch/local1/m300517/DeviceAvailability/"
 
@@ -31,9 +32,9 @@ days = 0
 # Define Paths:
 MBR2_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/16_Cloud_radar_MBR2/"
 WindLidar_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/15_Wind_lidar/Proc/"
-ASCA_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/1_Allskyimager/data/"
-Ceilometer_path = "/data/mpi/mpiaes/obs/ACPC/Ceilometer/CHM140102/"
-HATPRO_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/4_Microwave_radiometer_HATPRO/"
+Allsky_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/1_Allskyimager/data/"
+Ceilometer_path = "/data/mpi/mpiaes/obs/ACPC/Ceilometer/"
+HATPRO_path = "/data/mpi/mpiaes/obs/ACPC/HATPRO/level0/"
 KATRIN_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/5_Cloud_radar_KATRIN/data/"
 KIT_path = "/data/mpi/mpiaes/obs/ACPC/KIT-WORA/Data/"
 MRR_path1 = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/7_Rain_radar_MRR/DeeblesPoint_201004-201501/"
@@ -78,7 +79,7 @@ class Device:
 
 
 # ========Set up Classes for each Device===================
-ASCA = Device('ASCA', 'AllskyImager', ASCA_path)
+Allsky = Device('Allsky', 'AllskyImager', Allsky_path)
 Ceilometer = Device('Ceilometer', 'Ceilometer', Ceilometer_path)
 HATPRO = Device('HATPRO', 'Microwave Radiometer HATPRO', HATPRO_path)
 KIT = Device('KIT', 'Cloud Radar KIT', KIT_path)
@@ -119,22 +120,26 @@ async def get_availability(start_date, end_date):
         dates.append(single_date)
 
         # Check for Allsky-imager:
-        ASCA_file = glob.glob(ASCA_path + "cc" + year_str[2:4] + month_str + "/" + day_str + "/*" + year_str[
+        Allsky_file = glob.glob(Allsky_path + "cc" + year_str[2:4] + month_str + "/" + day_str + "/*" + year_str[
                                                                                                     2:4] + month_str + day_str + ".tgz")
-        if len(ASCA_file) >= 1:
-            ASCA._AvailabilityAppend(1)
+        if len(Allsky_file) >= 1:
+            Allsky._AvailabilityAppend(1)
         else:
-            ASCA._AvailabilityAppend(0)
+            Allsky._AvailabilityAppend(0)
 
             # Check for Ceilometer:
-        Ceilo_file = glob.glob(Ceilometer_path + year_str + "/" + month_str + "/" + "CHM*" + day_str + ".dat")
-        if len(Ceilo_file) >= 1:
-            Ceilometer._AvailabilityAppend(1)
-        else:
+        broken = False
+        for folder in glob.glob(Ceilometer_path+"CH*"):
+            Ceilo_file = glob.glob(folder+ "/" + year_str + "/" + month_str + "/" + "CH*" + day_str + ".dat")
+            if len(Ceilo_file) >= 1:
+                Ceilometer._AvailabilityAppend(1)
+                broken = True
+                break
+        if not broken:
             Ceilometer._AvailabilityAppend(0)
 
             # Check for HATPRO:
-        HATPRO_path_date = HATPRO_path + year_str[2:4] + month_str + "/" + year_str[2:4] + month_str + day_str
+        HATPRO_path_date = HATPRO_path + year_str[2:4] + month_str + "/" + date_str[2:]
         if os.path.isdir(HATPRO_path_date):
             HATPRO._AvailabilityAppend(1)
         else:

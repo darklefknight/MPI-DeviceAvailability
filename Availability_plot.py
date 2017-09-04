@@ -36,7 +36,7 @@ for time_obj in numtime:
     time.append(mdate.num2date(time_obj))
 
 # ===========read from netcdf==========================
-ASCA = nc.variables['ASCA'][:].copy().astype(float)
+Allsky = nc.variables['Allsky'][:].copy().astype(float)
 Ceilometer = nc.variables['Ceilometer'][:].copy().astype(float)
 HATPRO = nc.variables['HATPRO'][:].copy().astype(float)
 KIT = nc.variables['KIT'][:].copy().astype(float)
@@ -49,8 +49,8 @@ WxSensor = nc.variables['WxSensor'][:].copy().astype(float)
 Radiation = nc.variables['Radiation'][:].copy().astype(float)
 Disdro = nc.variables['Disdro'][:].copy().astype(float)
 
-Devices = [ASCA, Ceilometer, HATPRO, KIT, KATRIN, MBR2, MRR, WindLidar, RamanLidar, WxSensor, Radiation, Disdro]
-Devices_names = ['ASCA', 'Ceilometer', 'HATPRO', 'KIT', 'KATRIN', 'MBR2', 'MRR', 'WindLidar', 'RamanLidar', 'WxSensor',
+Devices = [Allsky, Ceilometer, HATPRO, KIT, KATRIN, MBR2, MRR, WindLidar, RamanLidar, WxSensor, Radiation, Disdro]
+Devices_names = ['Allsky', 'Ceilometer', 'HATPRO', 'KIT', 'KATRIN', 'MBR2', 'MRR', 'WindLidar', 'RamanLidar', 'Weather',
                  'Radiation', 'Disdro']
 
 nc.close()
@@ -58,7 +58,7 @@ nc.close()
 # ============= Prepare data for plotting==================
 
 colors = dict(
-    ASCA='olive',
+    Allsky='olive',
     Ceilometer='blue',
     HATPRO='red',
     KIT='green',
@@ -67,7 +67,7 @@ colors = dict(
     MRR='lime',
     WindLidar='magenta',
     RamanLidar='sienna',
-    WxSensor='olive',
+    Weather='olive',
     Radiation='crimson',
     Disdro='red'
 )
