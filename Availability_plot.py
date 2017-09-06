@@ -3,39 +3,40 @@
 """
 Created on Mon Aug  7 11:04:45 2017
 
-@author: m300517
+Usage: in a terminal type:                                "bokeh serve Availability_plot,py"
+       or if you want your browser to display the plot:   "bokeh serve --show Availability_plot.py"
+
+This script creates an interactive Browser-application with bokeh to display the device availability on the
+Barbados (BCO) site. It therefore needs the netCDF4 file created by the DeviceAvailability.py to work.
+
+@author: Tobias Machnitzki (tobias.machnitzki@mpimet.mpg.de)
 """
 
+# ============Importing ================
 import numpy as np
 from bokeh.io import curdoc, show
-from bokeh.layouts import row, widgetbox
-from bokeh.models import ColumnDataSource, Range1d, DatetimeTickFormatter,Title, HoverTool,SaveTool
-from bokeh.models.widgets import Slider, TextInput, Dropdown, Select
-from bokeh.layouts import gridplot, layout, column
+from bokeh.models import Range1d, DatetimeTickFormatter
+from bokeh.models.widgets import Select
+from bokeh.layouts import gridplot
 from bokeh.plotting import figure
-from bokeh.models.glyphs import Text
 from netCDF4 import Dataset
 import matplotlib.dates as mdate
-from datetime import date, timedelta, timezone
+from datetime import timedelta
 from datetime import datetime as dt
 
-#BCO_START_DATE = date(2010, 1, 1)
-BCO_START_DATE = dt(2010,1,1)
-
-#
-# Set up data
-
-#NC_FILE = "C:/Users/darkl/Dropbox/MPI/Availability/Availability.nc"
-NC_FILE = "Availability.nc"
+# ==============Set up data================
+NC_FILE = '/scratch/local1/m300517/DeviceAvailability/Availability.nc'  # Path to the netcdf4 file
+BCO_START_DATE = dt(2010, 1, 1)
 
 nc = Dataset(NC_FILE, mode="r")
 
 numtime = nc.variables['numtime'][:].copy()
 time = []
 for time_obj in numtime:
-   time.append(mdate.num2date(time_obj))
+    time.append(mdate.num2date(time_obj))
 
-ASCA = nc.variables['ASCA'][:].copy().astype(float)
+# ===========read from netcdf==========================
+Allsky = nc.variables['Allsky'][:].copy().astype(float)
 Ceilometer = nc.variables['Ceilometer'][:].copy().astype(float)
 HATPRO = nc.variables['HATPRO'][:].copy().astype(float)
 KIT = nc.variables['KIT'][:].copy().astype(float)
@@ -48,20 +49,16 @@ WxSensor = nc.variables['WxSensor'][:].copy().astype(float)
 Radiation = nc.variables['Radiation'][:].copy().astype(float)
 Disdro = nc.variables['Disdro'][:].copy().astype(float)
 
-Devices = [ASCA, Ceilometer, HATPRO, KIT, KATRIN, MBR2, MRR, WindLidar, RamanLidar, WxSensor, Radiation, Disdro]
-Devices_names = ['ASCA', 'Ceilometer', 'HATPRO', 'KIT', 'KATRIN', 'MBR2', 'MRR', 'WindLidar', 'RamanLidar', 'WxSensor',
+Devices = [Allsky, Ceilometer, HATPRO, KIT, KATRIN, MBR2, MRR, WindLidar, RamanLidar, WxSensor, Radiation, Disdro]
+Devices_names = ['Allsky', 'Ceilometer', 'HATPRO', 'KIT', 'KATRIN', 'MBR2', 'MRR', 'WindLidar', 'RamanLidar', 'Weather',
                  'Radiation', 'Disdro']
 
 nc.close()
 
-# %%
-# Prepare data for plotting
-
-#for i, s in enumerate(Devices):
-#    Devices[i][Devices[i] == 0] = np.nan
+# ============= Prepare data for plotting==================
 
 colors = dict(
-    ASCA='olive',
+    Allsky='olive',
     Ceilometer='blue',
     HATPRO='red',
     KIT='green',
@@ -70,78 +67,47 @@ colors = dict(
     MRR='lime',
     WindLidar='magenta',
     RamanLidar='sienna',
-    WxSensor='olive',
+    Weather='olive',
     Radiation='crimson',
     Disdro='red'
 )
 
-
-#
-# subset = data.ix['2010-10-06']
-# x, y = subset.index.to_series(), subset['glucose']
-
-
-# %%
-# Make Dates (just temporary solution):
-def daterange(start_date, end_date):
-    for n in range(int((end_date - start_date).days)):
-        yield start_date + timedelta(n)
-
-
 start_date = BCO_START_DATE
-end_date = dt(2017, 8, 9)
+end_date = dt.today()
 
-def daterange2(start_date,days):
-    for n in range(int(days)):
-        yield start_date + timedelta(n)
-
-
-tz = timezone(offset=timedelta(hours=0),name='UTC')
 dates = np.asarray(time)
 for i in range(len(dates)):
-    dates[i] = dt.replace(dates[i],tzinfo=None)
+    dates[i] = dt.replace(dates[i], tzinfo=None)
 
-# %%
-# Set up plot
-years = end_date.year - start_date.year + 1
-menu1 = ["last 365 days", "last 30 days", "Complete Timerange"] + ["%i" % (i + start_date.year) for i in range(years)]
+# ================Set up plot=======================
+years = end_date.year - start_date.year + 1  # Defines the complete timerange
+menu1 = ["last 365 days", "last 30 days", "Complete Timerange"] + ["%i" % (i + start_date.year) for i in range(
+    years)]  # Creates the entries for the select-dropdown-menu
 
-select = Select(title="Select Timerange", value=("last 365 days"), options=menu1) #TODO: Change title-size (not so easy jet)
+select = Select(title="Select Timerange", value=("Complete Timerange"),
+                options=menu1)  # create the select-dropdown-menu
 select.width = 200
 
 xmax = dates[-1]
-xmin = xmax - timedelta(365)
+xmin = BCO_START_DATE
 
 toolbox = "xbox_zoom"
-hover = HoverTool(tooltips=[
-        ("date","@dates")],
-    formatters={
-    "date" : "datetime"
-    },
-    mode = "vline")
-
-
-
-
-
 p1 = figure(title=Devices_names[0], tools=toolbox, x_range=Range1d(start=xmin, end=xmax), y_range=(1, 2),
-            responsive=True,x_axis_type='datetime')
+            responsive=True, x_axis_type='datetime')  # set up the first plot
 
 p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12 = [
-    figure(title=Devices_names[i + 1],tools=toolbox, x_range=p1.x_range, y_range=p1.y_range, responsive=True,x_axis_type='datetime')
-    for i in range(len(Devices) - 1)]
+    figure(title=Devices_names[i + 1], tools=toolbox, x_range=p1.x_range, y_range=p1.y_range, responsive=True,
+           x_axis_type='datetime')
+    for i in range(len(Devices) - 1)]  # set up all other plots, sharing the x and y-axis with p1
+
 p_list = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
 
-p1.x_range.min_interval = timedelta(days=7)
-p1.x_range.max_interval = timedelta(days=len(dates))
+p1.x_range.min_interval = timedelta(days=7)  # maximal allowed zoom-in
+p1.x_range.max_interval = timedelta(days=len(dates))  # maximal allowed zoom-out
 
-
-
-for p, device, dev_name in zip(p_list, Devices, Devices_names):
-    #    p.cross([x for x in daterange(start_date,end_date)],device,size=40, line_cap='butt', line_alpha=0.6, line_color=colors[dev_name], fill_color=colors[dev_name])
+for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all the plots
     p.name = dev_name
     p.toolbar_location = "right"
-
 
     p.yaxis.axis_label = dev_name
     p.yaxis.visible = True
@@ -150,18 +116,16 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):
     p.yaxis.minor_tick_line_color = None
     p.yaxis.major_label_text_color = None
 
-    vbars = p.vbar(dates[device == 1], width=1,line_width=20, top=3, line_color=colors[dev_name], fill_color=colors[dev_name], line_alpha=0.95,
-           fill_alpha=0.95)
+    vbars = p.vbar(dates[device == 1], width=1, line_width=20, top=3, line_color=colors[dev_name],
+                   fill_color=colors[dev_name], line_alpha=0.95,
+                   fill_alpha=0.95)
 
-
-    p.xaxis.formatter=DatetimeTickFormatter(
-         hours=["%d %b %y"],
-         days=["%d %b %y"],
-         months=["%b %y"],
-         years=["%Y"],
-     )
-
-
+    p.xaxis.formatter = DatetimeTickFormatter(
+        hours=["%d %b %y"],
+        days=["%d %b %y"],
+        months=["%b %y"],
+        years=["%Y"],
+    )  # defines how the date is displayed at different zoom-in stages
 
     p.xaxis.visible = True
     p.xgrid.grid_line_color = 'black'
@@ -170,8 +134,8 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):
     p.outline_line_color = None
     p.xaxis.axis_line_color = None
 
-    p.xaxis.major_tick_line_color = 'black'  # turn off x-axis major ticks
-    p.xaxis.minor_tick_line_color = 'black'  # turn off x-axis minor ticks
+    p.xaxis.major_tick_line_color = 'black'
+    p.xaxis.minor_tick_line_color = 'black'
     p.xaxis.major_tick_in = 100
 
     p.plot_width = 1300
@@ -181,25 +145,23 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):
     p.title_location = 'left'
     p.title.visible = False
 
-
-
-
-
-
-del p_list[8] #TODO: add the right path for RamanLidar! This just excludes wrong Ramanlidar data from being plotted.
+del p_list[8]  # TODO: add the right path for RamanLidar! This just excludes wrong Ramanlidar data from being plotted.
 
 grid = gridplot([
     [x] for x in [select] + p_list]
-)
+)  # builds a grid from all plots and the select-menu
 
 
-# %%
 # change window to selection:
 def update_range(attrname, old, new):
+    '''
+    Set up the x-range depending on the chosen entry from
+    the select menu.
+    '''
     try:
         which = int(select.value)
-        xmin = dt(which,1,1)
-        xmax = dt(which+1,1,1)
+        xmin = dt(which, 1, 1)
+        xmax = dt(which + 1, 1, 1)
         print(type(which), which)
     except:
         xmax = dates[-1]
@@ -214,14 +176,9 @@ def update_range(attrname, old, new):
 
     p1.x_range.start = xmin
     p1.x_range.end = xmax
-    # p1.x_range = Range1d(start=xmin, end=xmax)
 
-
-
-
-# %%
 
 select.on_change('value', update_range)
 curdoc().add_root(grid)
 curdoc().title = "Device Availability"
-# show(grid)
+# show(grid) # can be used for debugging, but the select menu will not work then
