@@ -24,7 +24,7 @@ import asyncio
 BCO_START_DATE = date(2010, 1, 1)
 # BCO_START_DATE = date(2017,1,1) #for testing
 NC_NAME = 'Availability.nc'
-NC_PATH = "/scratch/local1/m300517/DeviceAvailability/"
+NC_PATH = ""
 
 Devices = []
 days = 0
