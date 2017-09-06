@@ -225,4 +225,3 @@ select.on_change('value', update_range)
 curdoc().add_root(grid)
 curdoc().title = "Device Availability"
 # show(grid)
-
