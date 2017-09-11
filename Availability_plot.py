@@ -15,10 +15,11 @@ Barbados (BCO) site. It therefore needs the netCDF4 file created by the DeviceAv
 # ============Importing ================
 import numpy as np
 from bokeh.io import curdoc, show
-from bokeh.models import Range1d, DatetimeTickFormatter, ColumnDataSource
+from bokeh.models import Range1d, DatetimeTickFormatter, ColumnDataSource, CustomJS
 from bokeh.models.widgets import Select, Button
-from bokeh.layouts import gridplot
+from bokeh.layouts import gridplot, column, widgetbox
 from bokeh.plotting import figure
+from bokeh.embed import components
 from netCDF4 import Dataset
 import matplotlib.dates as mdate
 from datetime import timedelta
@@ -83,7 +84,7 @@ for i in range(len(dates)):
 
 
 
-
+last_date = np.asarray(mdate.num2epoch(mdate.date2num(dates[-500:-1])))
 source = ColumnDataSource(
     data=dict(x = dates,
               Allsky=Allsky,
@@ -98,6 +99,13 @@ source = ColumnDataSource(
               Weather=WxSensor,
               Radiation=Radiation,
               Disdro=Disdro))
+
+last_date_source = ColumnDataSource(
+    data=dict(
+        # x = str(mdate.num2epoch(mdate.date2num(dates[-4:])))
+        x = last_date
+    )
+)
 
 # ================Set up plot=======================
 years = end_date.year - start_date.year + 1  # Defines the complete timerange
@@ -169,8 +177,8 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
 
 del p_list[8]  # TODO: add the right path for RamanLidar! This just excludes wrong Ramanlidar data from being plotted.
 
-grid = gridplot([
-    [x] for x in [select] + p_list]
+widget = widgetbox(select)
+grid = column(select,p1,p2
 )  # builds a grid from all plots and the select-menu
 
 
@@ -200,7 +208,23 @@ def update_range(attrname, old, new):
     p1.x_range.end = xmax
 
 
-select.on_change('value', update_range)
+callback_select = CustomJS(args=dict(xr=p1.x_range, source=last_date_source), code=open("select_callback.js").read())
+
+
+# select.on_change('value', update_range)
+select.js_on_change('value', callback_select)
 curdoc().add_root(grid)
 curdoc().title = "Device Availability"
 # show(grid) # can be used for debugging, but the select menu will not work then
+
+script,div = components(grid)
+script = script[35:] #removes the <script> tag at the beginning
+script = script[:-9] #removes the </script> tag at the end
+
+with open("AvailabilitPlot.js","w") as f:
+     f.write(script)
+     f.close()
+
+with open("AvailabilityPlotDiv.html","w") as f:
+    f.write(div)
+    f.close()
