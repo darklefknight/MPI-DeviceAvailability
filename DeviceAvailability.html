@@ -7,26 +7,34 @@
     <link href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.6.min.css" rel="stylesheet" type="text/css">
     <link href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.6.min.css" rel="stylesheet" type="text/css">
 
+    <link href="style.css" rel="stylesheet" type="text/css">
+
     <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.6.min.js"></script>
     <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.6.min.js"></script>
 
     <script src="https://www.w3schools.com/lib/w3data.js"></script>
 
-
 </head>
 <body>
-<h2>Device Availability of the Barbados Cloud Observatory</h2>
-<p>Use the dropdown list to choose a timeframe or just drag a box with your mouse inside the plot.</p>
+<div id="container"><!-- ohne Inhalt -->
+    <div id="header">
+        <h2>Device Availability of the Barbados Cloud Observatory</h2>
+        <p>Use the dropdown list to choose a timeframe or just drag a box with your mouse inside the plot.</p>
+    </div>
 
-<div w3-include-html="AvailabilityPlotDiv.html"></div>
+    <div id="content">
+        <div class="bk-root">
+            <div class="bk-plotdiv" id="AvailabilityPlotElementID"></div>
+        </div>
 
-<script>
-    w3IncludeHTML();
-</script>
+    </div>
+    <div id="navigation">
+        <p id="devInfo">Click on a device name to diplay its information here.</p>
+    </div>
+</div>
 
 <!-- Scripts from Availability Plot -->
 <script src="AvailabilitPlot.js"></script>
-
 
 </body>
 </html>
