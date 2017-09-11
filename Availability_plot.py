@@ -15,7 +15,7 @@ Barbados (BCO) site. It therefore needs the netCDF4 file created by the DeviceAv
 # ============Importing ================
 import numpy as np
 from bokeh.io import curdoc, show
-from bokeh.models import Range1d, DatetimeTickFormatter, ColumnDataSource, CustomJS
+from bokeh.models import Range1d, DatetimeTickFormatter, ColumnDataSource, CustomJS, Legend
 from bokeh.models.widgets import Select, Button
 from bokeh.layouts import gridplot, column, widgetbox
 from bokeh.plotting import figure
@@ -132,11 +132,13 @@ p_list = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
 p1.x_range.min_interval = timedelta(days=7)  # maximal allowed zoom-in
 p1.x_range.max_interval = timedelta(days=len(dates))  # maximal allowed zoom-out
 
+
 for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all the plots
     p.name = dev_name
     p.toolbar_location = "right"
 
     p.yaxis.axis_label = dev_name
+    p.yaxis.axis_label_text_color = None
     p.yaxis.visible = True
     p.yaxis.axis_line_color = None
     p.yaxis.major_tick_line_color = None
@@ -174,6 +176,25 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
 
     p.title_location = 'left'
     p.title.visible = False
+
+    legend = Legend(
+        items=[
+        (dev_name, []),
+            ],
+        location=(20, -8),
+        label_text_font_size = "10pt",
+        label_text_font_style = "bold",
+        label_width = 80,
+        label_text_align = "left",
+        margin = 5,
+        background_fill_color = "black",
+        background_fill_alpha= 0.1
+
+    )
+
+    p.add_layout(legend,"left")
+
+
 
 del p_list[8]  # TODO: add the right path for RamanLidar! This just excludes wrong Ramanlidar data from being plotted.
 
