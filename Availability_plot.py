@@ -183,34 +183,9 @@ grid = gridplot([[x] for x in [select] + p_list]
 
 
 # change window to selection:
-def update_range(attrname, old, new):
-    '''
-    Set up the x-range depending on the chosen entry from
-    the select menu.
-    '''
-    try:
-        which = int(select.value)
-        xmin = dt(which, 1, 1)
-        xmax = dt(which + 1, 1, 1)
-        print(type(which), which)
-    except:
-        xmax = dates[-1]
-        if 'last 365' in select.value:
-            xmin = xmax - timedelta(365)
-        elif 'last 30' in select.value:
-            xmin = xmax - timedelta(30)
-        elif 'Complete Timerange' in select.value:
-            xmin = BCO_START_DATE
-        else:
-            xmin = 0
-
-    p1.x_range.start = xmin
-    p1.x_range.end = xmax
-
-
 callback_select = CustomJS(args=dict(xr=p1.x_range, source=last_date_source), code=open("select_callback.js").read())
 
-# select.on_change('value', update_range)
+
 select.js_on_change('value', callback_select)
 curdoc().add_root(grid)
 curdoc().title = "Device Availability"
