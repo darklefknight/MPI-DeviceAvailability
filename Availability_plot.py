@@ -152,13 +152,13 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
         years=["%Y"],
     )  # defines how the date is displayed at different zoom-in stages
 
-    # vbars = p.vbar(dev_name, width=1, line_width=20, top=3, line_color='blue',  # colors[dev_name],
-    #                fill_color='blue'  # colors[dev_name]
-    #                , line_alpha=0.95,
-    #                fill_alpha=0.95, source=source)
+    vbars = p.vbar(x="x", width=1, line_width=20, top=dev_name, line_color='blue',  # colors[dev_name],
+                   fill_color='blue'
+                   , line_alpha=0.95,
+                   fill_alpha=0.95, source=source)
 
-    circles = p.square(x="x", y=dev_name, source=source, size=20, color='blue', selection_color="orange", alpha=0.9,
-                       selection_alpha=0.9)
+                # circles = p.square(x="x", y=dev_name, source=source, size=20, color='blue', selection_color="orange", alpha=0.9,
+                # selection_alpha=0.9)
 
     p.xaxis.visible = True
     p.xgrid.grid_line_color = 'black'
@@ -178,22 +178,20 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
     p.title_location = 'left'
     p.title.visible = False
 
-    legend = Legend(
-        items=[
-            (dev_name, []),
-        ],
-        location=(20, -8),
-        label_text_font_size="10pt",
-        label_text_font_style="bold",
-        label_width=80,
-        label_text_align="left",
-        margin=5,
-        background_fill_color="black",
-        background_fill_alpha=0.1
+legend = Legend(
+    items=[
+        (dev_name, []),
+    ],
+    location=(20, -8),
+    label_text_font_size="10pt",
+    label_text_font_style="bold",
+    label_width=80,
+    label_text_align="left",
+    margin=5,
+    background_fill_color="black",
+    background_fill_alpha=0.1
 
-    )
-
-    #p.add_layout(legend, "left")
+)  # p.add_layout(legend, "left")
 
 Buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12] = [Button(
     label=dev_name,
@@ -202,10 +200,9 @@ Buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12] = [Button(
     height=75,
     callback=(
         CustomJS(args=dict(source=source),
-        code=open("legend_callback.js").read())
+                 code=open("legend_callback.js").read())
     )
 ) for dev_name in Devices_names]
-
 
 del p_list[8]  # TODO: add the right path for RamanLidar! This just excludes wrong Ramanlidar data from being plotted.
 del Buttons[8]
