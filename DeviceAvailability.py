@@ -229,7 +229,7 @@ async def get_availability(start_date, end_date):
         for line in EARLI_file:
             earli_date,earli_int = line.split()
             if (single_date.strftime("%y%m%d") in earli_date):
-                if earli_int == 1:
+                if int(earli_int) == 1:
                     in_file = True
         if in_file:
             EARLI._AvailabilityAppend(1)
@@ -241,7 +241,7 @@ async def get_availability(start_date, end_date):
         for line in LICHT_file:
             licht_date, licht_int = line.split()
             if (single_date.strftime("%y%m%d") in licht_date):
-                if licht_int == 1:
+                if int(licht_int) == 1:
                     in_file = True
         if in_file:
             LICHT._AvailabilityAppend(1)
