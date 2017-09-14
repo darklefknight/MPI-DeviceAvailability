@@ -39,6 +39,7 @@ nc = Dataset(NC_FILE, mode="r")
 numtime = nc.variables['numtime'][:].copy()
 time = []
 for time_obj in numtime:
+    # print(time_obj)
     time.append(mdate.num2date(time_obj))
 
 start_date = BCO_START_DATE
@@ -58,15 +59,17 @@ KATRIN = nc.variables['KATRIN'][:].copy().astype(float)*height
 MBR2 = nc.variables['MBR2'][:].copy().astype(float)*height
 MRR = nc.variables['MRR'][:].copy().astype(float)*height
 WindLidar = nc.variables['WindLidar'][:].copy().astype(float)*height
-RamanLidar = nc.variables['RamanLidar'][:].copy().astype(float)*height
+# RamanLidar = nc.variables['RamanLidar'][:].copy().astype(float)*height
 WxSensor = nc.variables['WxSensor'][:].copy().astype(float)*height
 Radiation = nc.variables['Radiation'][:].copy().astype(float)*height
 Disdro = nc.variables['Disdro'][:].copy().astype(float)*height
+EARLI = nc.variables['EARLI'][:].copy().astype(float)*height
+LICHT = nc.variables['LICHT'][:].copy().astype(float)*height
 
 
-Devices = [Allsky, WxSensor, Radiation, Disdro,  HATPRO, KIT, KATRIN, MBR2, MRR, Ceilometer, WindLidar, RamanLidar]
+Devices = [Allsky, WxSensor, Radiation, Disdro,  HATPRO, KIT, KATRIN, MBR2, MRR, Ceilometer, WindLidar, EARLI,LICHT]
 Devices_names = ['Allsky', 'Weather', 'Radiation', 'Disdro', 'HATPRO', 'KIT', 'KATRIN', 'MBR2', 'MRR', 'Ceilometer',
-                 'WindLidar', 'RamanLidar']
+                 'WindLidar', 'EARLI','LICHT']
 
 nc.close()
 
@@ -82,9 +85,11 @@ colors = dict(
     KATRIN='#396EFE',
     MBR2='#013EE4',
     MRR='#143AA3',
-    Ceilometer='#98D152',
-    WindLidar='#659728',
-    RamanLidar='#2E4412',
+    Ceilometer='#B5E195',
+    WindLidar='#82CD4C',
+    # RamanLidar='#508A27',
+    EARLI='#233C11',
+    LICHT='#152907'
 
 )
 
@@ -101,10 +106,12 @@ source = ColumnDataSource(
               MBR2=MBR2,
               MRR=MRR,
               WindLidar=WindLidar,
-              RamanLidar=RamanLidar,
+              # RamanLidar=RamanLidar,
               Weather=WxSensor,
               Radiation=Radiation,
-              Disdro=Disdro))
+              Disdro=Disdro,
+              EARLI=EARLI,
+              LICHT=LICHT))
 
 last_date_source = ColumnDataSource(
     data=dict(
@@ -128,7 +135,7 @@ toolbox = "xbox_zoom"  # just for v1.1
 p1 = figure(title=Devices_names[0], tools=toolbox, x_range=Range1d(start=xmin, end=xmax), y_range=(0.5, 1.5),
             responsive=True, x_axis_type='datetime')  # set up the first plot
 
-p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12 = [
+p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13 = [
     figure(title=Devices_names[i + 1], tools=toolbox, x_range=p1.x_range, y_range=p1.y_range, responsive=True,
            x_axis_type='datetime')
     for i in range(len(Devices) - 1)]  # set up all other plots, sharing the x and y-axis with p1
@@ -180,7 +187,7 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
     p.xaxis.major_tick_in = 100
 
     p.plot_width = 1300
-    p.plot_height = 75
+    p.plot_height = 60
     p.sizing_mode = "scale_width"
 
     p.title_location = 'left'
@@ -201,11 +208,11 @@ legend = Legend(
 
 )  # p.add_layout(legend, "left")
 
-Buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12] = [Button(
+Buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = [Button(
     label=dev_name,
     button_type="success",
     width=200,
-    height=75,
+    height=60,
     callback=(
         CustomJS(args=dict(source=source),
                  code=open("legend_callback.js").read())

@@ -19,6 +19,8 @@ import glob
 from netCDF4 import Dataset
 import sys
 import asyncio
+import matplotlib.dates as mdate
+
 
 # ===========Settings====================
 BCO_START_DATE = date(2010, 1, 1)
@@ -223,20 +225,29 @@ async def get_availability(start_date, end_date):
             RamanLidar._AvailabilityAppend(0)
 
             # Check for EARLI:
+        in_file = False
         for line in EARLI_file:
             earli_date,earli_int = line.split()
             if (single_date.strftime("%y%m%d") in earli_date):
-                EARLI._AvailabilityAppend(int(earli_int))
-            else:
-                EARLI._AvailabilityAppend(0)
+                if earli_int == 1:
+                    in_file = True
+        if in_file:
+            EARLI._AvailabilityAppend(1)
+        else:
+            EARLI._AvailabilityAppend(0)
 
-            # Check for EARLI:
+            # Check for LICHT:
+        in_file = False
         for line in LICHT_file:
             licht_date, licht_int = line.split()
             if (single_date.strftime("%y%m%d") in licht_date):
-                EARLI._AvailabilityAppend(int(licht_int))
-            else:
-                EARLI._AvailabilityAppend(0)
+                if licht_int == 1:
+                    in_file = True
+        if in_file:
+            LICHT._AvailabilityAppend(1)
+        else:
+            LICHT._AvailabilityAppend(0)
+
 
 
 # =========Check if full scan is necessary=====================
@@ -261,7 +272,7 @@ else:
         sys.exit(0)
     print('Found netCDF-File %s - Just appending missing data.' % (NC_FILE))
 
-# end_date = date(2012,1,1)
+# end_date = date(2012,1,1) #Uncomment for fast testing!
 
 loop = asyncio.get_event_loop()  # for more information on this visit: https://docs.python.org/3/library/asyncio.html
 ids = loop.run_until_complete(get_availability(start_date, end_date))  # much faster then just iterating over the
