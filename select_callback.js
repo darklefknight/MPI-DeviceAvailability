@@ -1,3 +1,7 @@
+
+var vbars = [vbar0,vbar1,vbar2,vbar3,vbar4,vbar5,vbar6,vbar7,vbar8,vbar9,vbar10,vbar11,vbar12]
+var selected_line_width = 1
+
 if (isNaN(cb_obj.value)) {  //checks if the selected Value is an integer. e.g 2017
 
     var xmax = source.data['x'][source.data['x'].length -1] * 1000; //reads in the last value of the last_date_source object
@@ -11,6 +15,8 @@ if (isNaN(cb_obj.value)) {  //checks if the selected Value is an integer. e.g 20
         xmin.setFullYear(xmaxDate.getFullYear() -1);
         var xminmilli = xmin.getTime();
         var xmaxmilli = xmaxDate.getTime();
+        selected_line_width = 7
+
 
     }
     // if "30" in the selected value:
@@ -20,6 +26,7 @@ if (isNaN(cb_obj.value)) {  //checks if the selected Value is an integer. e.g 20
         xmin.setMonth(xmaxDate.getMonth() -1);
         var xminmilli = xmin.getTime();
         var xmaxmilli = xmaxDate.getTime();
+        selected_line_width = 30
 
     }
     //if "complete" in the selected value:
@@ -29,6 +36,7 @@ if (isNaN(cb_obj.value)) {  //checks if the selected Value is an integer. e.g 20
         var xminDate = new Date(xmin);
         var xminmilli = xminDate.getTime();
         var xmaxmilli = xmaxDate.getTime();
+        selected_line_width = 1
     }
 }
 
@@ -40,7 +48,12 @@ else {
     var xmax = new Date(which + 1, 0, 1); //make a date where the selected number is the year. Set Month and day to December 31st
     var xminmilli = xmin.getTime();
     var xmaxmilli = xmax.getTime();
+    selected_line_width = 7
 
+}
+
+for (i=0; i < vbars.length; i++) {
+    vbars[i].glyph.line_width = selected_line_width
 }
 
 xr.start = xminmilli;   //set p1.x_range.start
