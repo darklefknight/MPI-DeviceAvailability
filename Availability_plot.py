@@ -140,7 +140,7 @@ p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13 = [
            x_axis_type='datetime')
     for i in range(len(Devices) - 1)]  # set up all other plots, sharing the x and y-axis with p1
 
-p_list = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
+p_list = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13]
 
 p1.x_range.min_interval = timedelta(days=7)  # maximal allowed zoom-in
 p1.x_range.max_interval = timedelta(days=len(dates))  # maximal allowed zoom-out
