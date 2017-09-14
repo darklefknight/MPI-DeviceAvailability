@@ -43,6 +43,8 @@ WxSensor_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/12_Weathersensors/
 Radiation_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/14_Radiation/"
 Disdro_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/17_Disdrometer/"
 RamanLidar_path = "/data/mpi/mpiaes/obs/ACPC/RamanLidar-LICHT/HiRes/preProcessed/"  # TODO: Add the right Path
+EARLI_path = "./EARLI_Coverage.txt"
+LICHT_path = "./LICHT_Coverage.txt"
 
 
 # ============Creating the "Device" Class==============
@@ -91,7 +93,8 @@ RamanLidar = Device('RamanLidar', 'Raman Lidar', RamanLidar_path)
 WxSensor = Device('WxSensor', 'Weather Sensors', WxSensor_path)
 Radiation = Device('Radiation', 'Radiation Sensors', Radiation_path)
 Disdro = Device('Disdro', 'Disdrometer', Disdro_path)
-
+EARLI = Device('EARLI','EARLI Lidar',EARLI_path)
+LICHT = Device('LICHT','LICHT Lidar',LICHT_path)
 
 def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
@@ -100,6 +103,14 @@ def daterange(start_date, end_date):
 
 dates = []
 
+def readFromFile(file):
+    with open(file,"r") as f:
+        lines = f.readlines()
+        lines = lines[2:]
+    return lines
+
+EARLI_file = readFromFile(EARLI_path)
+LICHT_file = readFromFile(LICHT_path)
 
 async def get_availability(start_date, end_date):
     """
@@ -210,6 +221,22 @@ async def get_availability(start_date, end_date):
             RamanLidar._AvailabilityAppend(1)
         else:
             RamanLidar._AvailabilityAppend(0)
+
+            # Check for EARLI:
+        for line in EARLI_file:
+            earli_date,earli_int = line.split()
+            if (single_date.strftime("%y%m%d") in earli_date):
+                EARLI._AvailabilityAppend(int(earli_int))
+            else:
+                EARLI._AvailabilityAppend(0)
+
+            # Check for EARLI:
+        for line in LICHT_file:
+            licht_date, licht_int = line.split()
+            if (single_date.strftime("%y%m%d") in licht_date):
+                EARLI._AvailabilityAppend(int(licht_int))
+            else:
+                EARLI._AvailabilityAppend(0)
 
 
 # =========Check if full scan is necessary=====================

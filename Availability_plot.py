@@ -30,7 +30,8 @@ import os
 
 # ==============Set up data================
 # NC_FILE = '/scratch/local1/m300517/DeviceAvailability/Availability.nc'  # Path to the netcdf4 file
-NC_FILE = 'C:/Users/darkl/PycharmProjects/MPI-DeviceAvailability/Availability.nc'
+# NC_FILE = 'C:/Users/darkl/PycharmProjects/MPI-DeviceAvailability/Availability.nc'
+NC_FILE = 'Availability.nc'
 BCO_START_DATE = dt(2010, 1, 1)
 
 nc = Dataset(NC_FILE, mode="r")
@@ -40,49 +41,54 @@ time = []
 for time_obj in numtime:
     time.append(mdate.num2date(time_obj))
 
-# ===========read from netcdf==========================
-Allsky = nc.variables['Allsky'][:].copy().astype(float)
-Ceilometer = nc.variables['Ceilometer'][:].copy().astype(float)
-HATPRO = nc.variables['HATPRO'][:].copy().astype(float)
-KIT = nc.variables['KIT'][:].copy().astype(float)
-KATRIN = nc.variables['KATRIN'][:].copy().astype(float)
-MBR2 = nc.variables['MBR2'][:].copy().astype(float)
-MRR = nc.variables['MRR'][:].copy().astype(float)
-WindLidar = nc.variables['WindLidar'][:].copy().astype(float)
-RamanLidar = nc.variables['RamanLidar'][:].copy().astype(float)
-WxSensor = nc.variables['WxSensor'][:].copy().astype(float)
-Radiation = nc.variables['Radiation'][:].copy().astype(float)
-Disdro = nc.variables['Disdro'][:].copy().astype(float)
-
-Devices = [Allsky, Ceilometer, HATPRO, KIT, KATRIN, MBR2, MRR, WindLidar, RamanLidar, WxSensor, Radiation, Disdro]
-Devices_names = ['Allsky', 'Ceilometer', 'HATPRO', 'KIT', 'KATRIN', 'MBR2', 'MRR', 'WindLidar', 'RamanLidar', 'Weather',
-                 'Radiation', 'Disdro']
-
-nc.close()
-
-# ============= Prepare data for plotting==================
-
-colors = dict(
-    Allsky='olive',
-    Ceilometer='blue',
-    HATPRO='red',
-    KIT='green',
-    KATRIN='yellow',
-    MBR2='orange',
-    MRR='lime',
-    WindLidar='magenta',
-    RamanLidar='sienna',
-    Weather='olive',
-    Radiation='crimson',
-    Disdro='red'
-)
-
 start_date = BCO_START_DATE
 end_date = dt.today()
 
 dates = np.asarray(time)
 for i in range(len(dates)):
     dates[i] = dt.replace(dates[i], tzinfo=None)
+
+height=2
+# ===========read from netcdf==========================
+Allsky = nc.variables['Allsky'][:].copy().astype(float)*height
+Ceilometer = nc.variables['Ceilometer'][:].copy().astype(float)*height
+HATPRO = nc.variables['HATPRO'][:].copy().astype(float)*height
+KIT = nc.variables['KIT'][:].copy().astype(float)*height
+KATRIN = nc.variables['KATRIN'][:].copy().astype(float)*height
+MBR2 = nc.variables['MBR2'][:].copy().astype(float)*height
+MRR = nc.variables['MRR'][:].copy().astype(float)*height
+WindLidar = nc.variables['WindLidar'][:].copy().astype(float)*height
+RamanLidar = nc.variables['RamanLidar'][:].copy().astype(float)*height
+WxSensor = nc.variables['WxSensor'][:].copy().astype(float)*height
+Radiation = nc.variables['Radiation'][:].copy().astype(float)*height
+Disdro = nc.variables['Disdro'][:].copy().astype(float)*height
+
+
+Devices = [Allsky, WxSensor, Radiation, Disdro,  HATPRO, KIT, KATRIN, MBR2, MRR, Ceilometer, WindLidar, RamanLidar]
+Devices_names = ['Allsky', 'Weather', 'Radiation', 'Disdro', 'HATPRO', 'KIT', 'KATRIN', 'MBR2', 'MRR', 'Ceilometer',
+                 'WindLidar', 'RamanLidar']
+
+nc.close()
+
+# ============= Prepare data for plotting==================
+
+colors = dict(
+    Allsky='#FEB57E',
+    Weather='#FD8F3A',
+    Radiation='#CE5A02',
+    Disdro='#9F4D0F',
+    HATPRO='#653510',
+    KIT='#7896E8',
+    KATRIN='#396EFE',
+    MBR2='#013EE4',
+    MRR='#143AA3',
+    Ceilometer='#98D152',
+    WindLidar='#659728',
+    RamanLidar='#2E4412',
+
+)
+
+
 
 last_date = np.asarray(mdate.num2epoch(mdate.date2num(dates[:])))
 source = ColumnDataSource(
@@ -103,9 +109,7 @@ source = ColumnDataSource(
 last_date_source = ColumnDataSource(
     data=dict(
         # x = str(mdate.num2epoch(mdate.date2num(dates[-4:])))
-        x=last_date
-    )
-)
+        x=last_date))
 
 # ================Set up plot=======================
 years = end_date.year - start_date.year + 1  # Defines the complete timerange
@@ -152,13 +156,17 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
         years=["%Y"],
     )  # defines how the date is displayed at different zoom-in stages
 
-    vbars = p.vbar(x="x", width=1, line_width=20, top=dev_name, line_color='blue',  # colors[dev_name],
-                   fill_color='blue'
-                   , line_alpha=0.95,
-                   fill_alpha=0.95, source=source)
+    vbars = p.vbar(x="x", top=dev_name,
+                   width=1, line_width=1,
+                   line_color=colors[dev_name],
+                   fill_color=colors[dev_name],
+                   line_alpha=0.95,
+                   fill_alpha=0.95,
+                   source=source)
 
-                # circles = p.square(x="x", y=dev_name, source=source, size=20, color='blue', selection_color="orange", alpha=0.9,
-                # selection_alpha=0.9)
+
+    # circles = p.square(x="x", y=dev_name, source=source, size=20, color='blue', selection_color="orange", alpha=0.9,
+    # selection_alpha=0.9)
 
     p.xaxis.visible = True
     p.xgrid.grid_line_color = 'black'
@@ -204,8 +212,8 @@ Buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12] = [Button(
     )
 ) for dev_name in Devices_names]
 
-del p_list[8]  # TODO: add the right path for RamanLidar! This just excludes wrong Ramanlidar data from being plotted.
-del Buttons[8]
+# del p_list[8]  # TODO: add the right path for RamanLidar! This just excludes wrong Ramanlidar data from being plotted.
+# del Buttons[8]
 
 grid1 = gridplot([[b, x] for b, x in zip(Buttons, p_list)]
                  )  # builds a grid from all plots and the select-menu
