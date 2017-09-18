@@ -52,7 +52,7 @@ for i in range(len(dates)):
     dates[i] = dt.replace(dates[i], tzinfo=None)
 
 # read all other variables from netcdf-file:
-height = 2 # height of the plotted vbars
+height = 1.5 # height of the plotted vbars
 Allsky = nc.variables['Allsky'][:].copy().astype(float) * height
 Ceilometer = nc.variables['Ceilometer'][:].copy().astype(float) * height
 HATPRO = nc.variables['HATPRO'][:].copy().astype(float) * height
