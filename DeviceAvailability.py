@@ -9,6 +9,10 @@ Usage: Just run it. No arguments required.
        If the file NC_NAME does already exists in NC_PATH, then the script will look if there are time steps to be
        appended to the file.
 
+Dependencies:
+    - EARLI_Coverage.txt
+    - LICHT_Coverage.txt
+
 @author: Tobias Machnitzki (tobias.machnitzki@mpimet.mpg.de)
 """
 # ================Import==================

@@ -1,4 +1,8 @@
-
+// Script for the buttons in DeviceAvailability.html to work.
+// Each button sends the user to a different url.
+//
+// created 18.09.2017
+// @author: Tobias Machnitzki (tobias.machnitzki@mpimet.mpg.de)
 var button = cb_obj.label;
 var page="";
 

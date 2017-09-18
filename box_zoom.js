@@ -1,3 +1,5 @@
+// @author: Tobias Machnitzki (tobias.machnitzki@mpimet.mpg.de)
+
 var vbars = [vbar0, vbar1, vbar2, vbar3, vbar4, vbar5, vbar6, vbar7, vbar8, vbar9, vbar10, vbar11, vbar12];
 
 // var msecPerMinute = 1000 * 60;

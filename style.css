@@ -1,3 +1,11 @@
+/* style sheet for the DeviceAvailability.html
+Use the block ":root" to change the colors.
+
+@author: Tobias Machnitzki (tobias.machnitzki@mpimet.mpg.de)
+*/
+
+
+/* -- Color definition: --*/
 :root {
     --headbackground: #9BD770;
     --headtext: #1B3409;

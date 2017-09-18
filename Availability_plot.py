@@ -8,6 +8,12 @@ Usage: 1. Run DeviceAvailability.py to get the Availability.nc file.
        2. Run this code without parameters.
        3. Open the DeviceAvailability.html in your browser
 
+Dependencies:
+    - Availability.nc
+    - button_callback.js
+    - box_zoom.js
+    - select_callback.js
+
 This script creates an interactive Browser-application with bokeh to display the device availability on the
 Barbados (BCO) site. It therefore needs the netCDF4 file created by the DeviceAvailability.py to work.
 
