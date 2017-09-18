@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Aug  7 11:04:45 2017
+tested and working with bokeh-version 0.12.6
 
-Usage: in a terminal type:                                "bokeh serve Availability_plot,py"
-       or if you want your browser to display the plot:   "bokeh serve --show Availability_plot.py"
+Usage: 1. Run DeviceAvailability.py to get the Availability.nc file.
+       2. Run this code without parameters.
+       3. Open the DeviceAvailability.html in your browser
 
 This script creates an interactive Browser-application with bokeh to display the device availability on the
 Barbados (BCO) site. It therefore needs the netCDF4 file created by the DeviceAvailability.py to work.
@@ -29,14 +31,14 @@ from functools import lru_cache
 import os
 
 # ==============Set up data================
-# NC_FILE = '/scratch/local1/m300517/DeviceAvailability/Availability.nc'  # Path to the netcdf4 file
-# NC_FILE = 'C:/Users/darkl/PycharmProjects/MPI-DeviceAvailability/Availability.nc'
 NC_FILE = 'Availability.nc'
 BCO_START_DATE = dt(2010, 1, 1)
 
+# ===========read from netcdf==========================
 nc = Dataset(NC_FILE, mode="r")
-
 numtime = nc.variables['numtime'][:].copy()
+
+# bring time-variable in right format for plotting:
 time = []
 for time_obj in numtime:
     # print(time_obj)
@@ -49,27 +51,27 @@ dates = np.asarray(time)
 for i in range(len(dates)):
     dates[i] = dt.replace(dates[i], tzinfo=None)
 
-height=2
-# ===========read from netcdf==========================
-Allsky = nc.variables['Allsky'][:].copy().astype(float)*height
-Ceilometer = nc.variables['Ceilometer'][:].copy().astype(float)*height
-HATPRO = nc.variables['HATPRO'][:].copy().astype(float)*height
-KIT = nc.variables['KIT'][:].copy().astype(float)*height
-KATRIN = nc.variables['KATRIN'][:].copy().astype(float)*height
-MBR2 = nc.variables['MBR2'][:].copy().astype(float)*height
-MRR = nc.variables['MRR'][:].copy().astype(float)*height
-WindLidar = nc.variables['WindLidar'][:].copy().astype(float)*height
+# read all other variables from netcdf-file:
+height = 2 # height of the plotted vbars
+Allsky = nc.variables['Allsky'][:].copy().astype(float) * height
+Ceilometer = nc.variables['Ceilometer'][:].copy().astype(float) * height
+HATPRO = nc.variables['HATPRO'][:].copy().astype(float) * height
+KIT = nc.variables['KIT'][:].copy().astype(float) * height
+KATRIN = nc.variables['KATRIN'][:].copy().astype(float) * height
+MBR2 = nc.variables['MBR2'][:].copy().astype(float) * height
+MRR = nc.variables['MRR'][:].copy().astype(float) * height
+WindLidar = nc.variables['WindLidar'][:].copy().astype(float) * height
 # RamanLidar = nc.variables['RamanLidar'][:].copy().astype(float)*height
-WxSensor = nc.variables['WxSensor'][:].copy().astype(float)*height
-Radiation = nc.variables['Radiation'][:].copy().astype(float)*height
-Disdro = nc.variables['Disdro'][:].copy().astype(float)*height
-EARLI = nc.variables['EARLI'][:].copy().astype(float)*height
-LICHT = nc.variables['LICHT'][:].copy().astype(float)*height
+WxSensor = nc.variables['WxSensor'][:].copy().astype(float) * height
+Radiation = nc.variables['Radiation'][:].copy().astype(float) * height
+Disdro = nc.variables['Disdro'][:].copy().astype(float) * height
+EARLI = nc.variables['EARLI'][:].copy().astype(float) * height
+LICHT = nc.variables['LICHT'][:].copy().astype(float) * height
 
-
-Devices = [Allsky, WxSensor, Radiation, Disdro,  HATPRO, KIT, KATRIN, MBR2, MRR, Ceilometer, WindLidar, EARLI,LICHT]
+# creating lists for easy acces within loops:
+Devices = [Allsky, WxSensor, Radiation, Disdro, HATPRO, KIT, KATRIN, MBR2, MRR, Ceilometer, WindLidar, EARLI, LICHT]
 Devices_names = ['Allsky', 'Weather', 'Radiation', 'Disdro', 'HATPRO', 'KIT', 'KATRIN', 'MBR2', 'MRR', 'Ceilometer',
-                 'WindLidar', 'EARLI','LICHT']
+                 'WindLidar', 'EARLI', 'LICHT']
 
 nc.close()
 
@@ -89,14 +91,9 @@ colors = dict(
     WindLidar='#82CD4C',
     # RamanLidar='#508A27',
     EARLI='#28500C',
-    LICHT='#152907'
+    LICHT='#152907')
 
-)
-
-
-
-
-last_date = np.asarray(mdate.num2epoch(mdate.date2num(dates[:])))
+# creating a general data-source:
 source = ColumnDataSource(
     data=dict(x=dates,
               Allsky=Allsky,
@@ -114,25 +111,17 @@ source = ColumnDataSource(
               EARLI=EARLI,
               LICHT=LICHT))
 
-last_date_source = ColumnDataSource(
-    data=dict(
-        # x = str(mdate.num2epoch(mdate.date2num(dates[-4:])))
-        x=last_date))
+# creating a data-source for the select-dropdown list:
+last_date = np.asarray(mdate.num2epoch(mdate.date2num(dates[:])))
+last_date_source = ColumnDataSource(data=dict(x=last_date))
 
 # ================Set up plot=======================
 years = end_date.year - start_date.year + 1  # Defines the complete timerange
-menu1 = ["last 365 days", "last 30 days", "Complete Timerange"] + ["%i" % (i + start_date.year) for i in range(
-    years)]  # Creates the entries for the select-dropdown-menu
-
-select = Select(title="Select Timerange", value=("Complete Timerange"),
-                options=menu1)  # create the select-dropdown-menu
-select.width = 200
 
 xmax = dates[-1]
 xmin = BCO_START_DATE
 
-# toolbox = "xbox_select,xbox_zoom"
-toolbox = "xbox_zoom,undo"  # just for v1.1
+toolbox = "xbox_zoom,undo"  # which
 p1 = figure(title=Devices_names[0], tools=toolbox, x_range=Range1d(start=xmin, end=xmax), y_range=(0.5, 1.5),
             responsive=True, x_axis_type='datetime')  # set up the first plot
 
@@ -150,6 +139,8 @@ vbar_list = []
 for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all the plots
     p.name = dev_name
     p.toolbar_location = "right"
+    p.min_border_top = 20
+    # p.min_border_bottom=50
 
     p.yaxis.axis_label = dev_name
     p.yaxis.axis_label_text_color = None
@@ -165,7 +156,6 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
         years=["%Y"],
     )  # defines how the date is displayed at different zoom-in stages
 
-
     vbars = p.vbar(x="x", top=dev_name,
                    width=1, line_width=1,
                    line_color=colors[dev_name],
@@ -174,7 +164,6 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
                    fill_alpha=0.95,
                    source=source)
     vbar_list.append(vbars)
-
 
     # circles = p.square(x="x", y=dev_name, source=source, size=20, color='blue', selection_color="orange", alpha=0.9,
     # selection_alpha=0.9)
@@ -185,17 +174,17 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
     p.xgrid.grid_line_color = 'black'
     p.xgrid.grid_line_alpha = 0.5
     p.ygrid.grid_line_color = 'black'
-    p.ygrid.bounds = (0.902,0.905)
+    p.ygrid.bounds = (0.955, 0.957)
     p.outline_line_color = None
     p.xaxis.axis_line_color = None
 
     p.xaxis.major_tick_line_color = 'black'
     p.xaxis.minor_tick_line_color = 'black'
-    p.xaxis.major_tick_in = 100
+    p.xaxis.major_tick_in = 30
     p.xaxis.major_tick_line_width = 2
 
     p.plot_width = 1300
-    p.plot_height = 60
+    p.plot_height = 70
     p.sizing_mode = "scale_width"
 
     p.title_location = 'left'
@@ -216,19 +205,21 @@ legend = Legend(
 
 )  # p.add_layout(legend, "left")
 
+menu1 = ["last 365 days", "last 30 days", "Complete Timerange"] + ["%i" % (i + start_date.year) for i in range(
+    years)]  # Creates the entries for the select-dropdown-menu
+select = Select(title="Select Timerange", value=("Complete Timerange"),options=menu1)  # create the select-dropdown-menu
+select.width = 200
+
 Buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = [Button(
+    name=dev_name,
     label=dev_name,
     button_type="success",
-    width=200,
-    height=60,
+    width=150,
+    height=0,
     callback=(
-        CustomJS(args=dict(source=source),
-                 code=open("legend_callback.js").read())
+        CustomJS(code=open("button_callback.js").read())
     )
 ) for dev_name in Devices_names]
-
-
-
 
 grid1 = gridplot([[b, x] for b, x in zip(Buttons, p_list)]
                  )  # builds a grid from all plots and the select-menu
@@ -254,23 +245,23 @@ callback_select = CustomJS(args=dict(xr=p1.x_range, source=last_date_source,
 
 select.js_on_change('value', callback_select)
 
-#change vbar-width after zooming:
-p1.x_range.js_on_change('start',
-                        CustomJS(args=dict(xr=p1.x_range,
-                                     vbar0=vbar_list[0],
-                                     vbar1=vbar_list[1],
-                                     vbar2=vbar_list[2],
-                                     vbar3=vbar_list[3],
-                                     vbar4=vbar_list[4],
-                                     vbar5=vbar_list[5],
-                                     vbar6=vbar_list[6],
-                                     vbar7=vbar_list[7],
-                                     vbar8=vbar_list[8],
-                                     vbar9=vbar_list[9],
-                                     vbar10=vbar_list[10],
-                                     vbar11=vbar_list[11],
-                                     vbar12=vbar_list[12],),
-                 code=open("box_zoom.js").read()))
+# change vbar-width after zooming: #TODO: this part is not working yet due to the bokeh 0.12.6 version. maybe in a later version try to put this back in again
+# p1.x_range.js_on_change('start',
+#                         CustomJS(args=dict(xr=p1.x_range,
+#                                      vbar0=vbar_list[0],
+#                                      vbar1=vbar_list[1],
+#                                      vbar2=vbar_list[2],
+#                                      vbar3=vbar_list[3],
+#                                      vbar4=vbar_list[4],
+#                                      vbar5=vbar_list[5],
+#                                      vbar6=vbar_list[6],
+#                                      vbar7=vbar_list[7],
+#                                      vbar8=vbar_list[8],
+#                                      vbar9=vbar_list[9],
+#                                      vbar10=vbar_list[10],
+#                                      vbar11=vbar_list[11],
+#                                      vbar12=vbar_list[12],),
+#                  code=open("box_zoom.js").read()))
 
 curdoc().add_root(grid)
 curdoc().title = "Device Availability"
@@ -304,6 +295,4 @@ with open("AvailabilitPlot.js", "w") as f:
     f.write(script)
     f.close()
 
-with open("AvailabilityPlotDiv.html", "w") as f:
-    f.write(div)
-    f.close()
+
