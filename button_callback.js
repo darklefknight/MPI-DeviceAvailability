@@ -13,12 +13,12 @@ if (button == "MBR2") {page="http://bcoweb.mpimet.mpg.de/quicklooks/mbr2ql/MBR2_
 if (button == "MRR") {page="http://bcoweb.mpimet.mpg.de/quicklooks/mrr-bco/mrr_yesterday.png"}
 if (button == "Ceilometer") {page="http://bcoweb.mpimet.mpg.de/quicklooks/ceilometer/ceilo_ql.png"}
 if (button == "WindLidar") {page="http://bcoweb.mpimet.mpg.de/quicklooks/windlidar/wl_yesterday.png"}
-if (button == "EARLI") {page=""}
-if (button == "LICHT") {page=""}
+if (button == "EARLI") {page="http://barbados.mpimet.mpg.de/lidarql/YESTERDAY.pdf"}
+if (button == "LICHT") {page="http://lidar.mpimet.mpg.de/lidarql/"}
 
 if (page==""){
-    document.getElementById("buttonInfo").innerHTML = "There is no Quickfew for the " + cb_obj.label + " yet.";
-    alert("There is no Quickfew for the " + cb_obj.label + " yet.")
+    document.getElementById("buttonInfo").innerHTML = "There is no quicklook for the " + cb_obj.label + " yet.";
+    alert("There is no quicklook for the " + cb_obj.label + " yet.")
 }
 else if (page == "NOT RUNNING") {
     document.getElementById("buttonInfo").innerHTML = "The " + cb_obj.label + " is not running at the moment.";
