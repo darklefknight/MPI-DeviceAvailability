@@ -132,7 +132,7 @@ p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13 = [
 
 p_list = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13]
 
-p1.x_range.min_interval = timedelta(days=7)  # maximal allowed zoom-in
+p1.x_range.min_interval = timedelta(days=14)  # maximal allowed zoom-in
 p1.x_range.max_interval = timedelta(days=len(dates))  # maximal allowed zoom-out
 
 vbar_list = []
@@ -142,7 +142,6 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
     p.min_border_top = 20
     # p.min_border_bottom=50
 
-    p.yaxis.axis_label = dev_name
     p.yaxis.axis_label_text_color = None
     p.yaxis.visible = True
     p.yaxis.axis_line_color = None
@@ -153,8 +152,7 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
         hours=["%d %b %y"],
         days=["%d %b %y"],
         months=["%b %y"],
-        years=["%Y"],
-    )  # defines how the date is displayed at different zoom-in stages
+        years=["%Y"])  # defines how the date is displayed at different zoom-in stages
 
     vbars = p.vbar(x="x", top=dev_name,
                    width=1, line_width=1,
@@ -164,9 +162,6 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
                    fill_alpha=0.95,
                    source=source)
     vbar_list.append(vbars)
-
-    # circles = p.square(x="x", y=dev_name, source=source, size=20, color='blue', selection_color="orange", alpha=0.9,
-    # selection_alpha=0.9)
 
     p.xaxis.major_label_text_color = 'black'
 
@@ -187,23 +182,9 @@ for p, device, dev_name in zip(p_list, Devices, Devices_names):  # Creating all 
     p.plot_height = 70
     p.sizing_mode = "scale_width"
 
-    p.title_location = 'left'
     p.title.visible = False
 
-legend = Legend(
-    items=[
-        (dev_name, []),
-    ],
-    location=(20, -8),
-    label_text_font_size="10pt",
-    label_text_font_style="bold",
-    label_width=80,
-    label_text_align="left",
-    margin=5,
-    background_fill_color="black",
-    background_fill_alpha=0.1
-
-)  # p.add_layout(legend, "left")
+# ============== Adding widgets: ===============================================================
 
 menu1 = ["last 365 days", "last 30 days", "Complete Timerange"] + ["%i" % (i + start_date.year) for i in range(
     years)]  # Creates the entries for the select-dropdown-menu
@@ -217,12 +198,9 @@ Buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = [Button(
     width=150,
     height=0,
     callback=(
-        CustomJS(code=open("button_callback.js").read())
-    )
-) for dev_name in Devices_names]
+        CustomJS(code=open("button_callback.js").read()))) for dev_name in Devices_names]
 
-grid1 = gridplot([[b, x] for b, x in zip(Buttons, p_list)]
-                 )  # builds a grid from all plots and the select-menu
+grid1 = gridplot([[b, x] for b, x in zip(Buttons, p_list)])  # builds a grid from all plots and the select-menu
 
 grid = column(select, grid1)
 
@@ -267,7 +245,8 @@ curdoc().add_root(grid)
 curdoc().title = "Device Availability"
 # show(grid) # can be used for debugging, but the select menu will not work then
 
-# export to JS:
+# ================ Export to JS:=================================================
+
 script, div = components(grid)
 script = script[35:]  # removes the <script> tag at the beginning
 script = script[:-9]  # removes the </script> tag at the end
@@ -294,5 +273,3 @@ with open("AvailabilitPlot.js", "w") as f:
     f.write("\nAuthor: Tobias Machnitzki (tobias.machnitzki@mpimet.mpg.de) */\n")
     f.write(script)
     f.close()
-
-
