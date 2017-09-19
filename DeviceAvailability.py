@@ -5,7 +5,7 @@ Created on Thu Jul 20 10:04:23 2017
 
 Usage: Just run it. No arguments required.
        If the netCDF file with NC_NAME does not exists in NC_PATH, the script will search all data from BCO_START_DATE
-       unti today and create a netCDF4 file with the results.
+       until today and create a netCDF4 file with the results.
        If the file NC_NAME does already exists in NC_PATH, then the script will look if there are time steps to be
        appended to the file.
 
@@ -32,9 +32,6 @@ BCO_START_DATE = date(2010, 1, 1)
 NC_NAME = 'Availability.nc'
 NC_PATH = ""
 
-Devices = []
-days = 0
-
 # Define Paths:
 MBR2_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/16_Cloud_radar_MBR2/"
 WindLidar_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/15_Wind_lidar/Proc/"
@@ -52,6 +49,7 @@ RamanLidar_path = "/data/mpi/mpiaes/obs/ACPC/RamanLidar-LICHT/HiRes/preProcessed
 EARLI_path = "./EARLI_Coverage.txt"
 LICHT_path = "./LICHT_Coverage.txt"
 
+Devices = []
 
 # ============Creating the "Device" Class==============
 class Device:
@@ -62,7 +60,6 @@ class Device:
         -avail (availability)
         -filepath
     """
-
     def __init__(self, varname, name, filepath):
         self.__name = name
         self.__filepath = filepath
@@ -126,9 +123,9 @@ async def get_availability(start_date, end_date):
     Appending a 1 to the device availability of each class, if data was found on the actual date
     and a 0 if no data was found for the actual date.
     """
-    days = 0
+
     for single_date in daterange(start_date, end_date):
-        days += 1
+
         #    print(single_date.strftime("%Y-%m-%d"))
         date_str = single_date.strftime("%Y%m%d")
         day_str = single_date.strftime("%d")
@@ -259,8 +256,7 @@ NC_FILE = NC_PATH + NC_NAME
 if not os.path.isfile(NC_FILE):
     print('No previous Data found. Scanning whole timerange.')
     start_date = BCO_START_DATE
-    end_date = date.today() + timedelta(
-        days=1)  # "+ timedelta(days=1)" is for today actually being included in the loop
+    end_date = date.today()
 else:
     nc_file = Dataset(NC_FILE, mode="r")
     nc_date_str = str(nc_file.variables['strftime'][-1])
@@ -268,8 +264,7 @@ else:
     nc_month = int(nc_date_str[4:6])
     nc_day = int(nc_date_str[6:8])
     start_date = date(nc_year, nc_month, nc_day) + timedelta(days=1)
-    end_date = date.today() + timedelta(
-        days=1)  # "+ timedelta(days=1)" is for today actually being included in the loop
+    end_date = date.today()
     nc_file.close()
     if start_date >= end_date:
         print('The File is already up to date. Delete the file first to start a complete new scan.')

@@ -49,6 +49,8 @@ time = []
 for time_obj in numtime:
     # print(time_obj)
     time.append(mdate.num2date(time_obj))
+time.append(time[-1]+timedelta(days=1)) # Appending today for nicer plotting of last 30 days
+
 
 start_date = BCO_START_DATE
 end_date = dt.today()

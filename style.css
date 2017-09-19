@@ -11,7 +11,7 @@ Use the block ":root" to change the colors.
     --headtext: #1B3409;
     --bodybackground: #EBF7E3;
     --buttonbackground: #66B032;
-    --buttonbackgroundover: #5DADE2;
+    --buttonbackgroundhover: #5DADE2;
     --buttontext: #FDFEFE;
     --buttontexthover: var(--buttontext);
     --info: #FFFFFF;
@@ -38,8 +38,8 @@ Use the block ":root" to change the colors.
 
 .bk-root .bk-bs-btn-success:hover {
     color: var(--buttontexthover);
-    background-color: var(--buttonbackgroundover);
-    border-color: var(--buttonbackgroundover);
+    background-color: var(--buttonbackgroundhover);
+    border-color: var(--buttonbackgroundhover);
 }
 
 #container {
