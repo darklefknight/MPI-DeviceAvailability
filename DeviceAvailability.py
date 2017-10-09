@@ -263,7 +263,9 @@ else:
     nc_year = int(nc_date_str[:4])
     nc_month = int(nc_date_str[4:6])
     nc_day = int(nc_date_str[6:8])
-    start_date = date(nc_year, nc_month, nc_day) + timedelta(days=1)
+    # start_date = date(nc_year, nc_month, nc_day) + timedelta(days=1)
+    start_date = date(nc_year, nc_month, nc_day) - timedelta(days=31)
+
     end_date = date.today()
     nc_file.close()
     if start_date >= end_date:
@@ -271,7 +273,7 @@ else:
         sys.exit(0)
     print('Found netCDF-File %s - Just appending missing data.' % (NC_FILE))
 
-# end_date = date(2012,1,1) #Uncomment for fast testing!
+# end_date = date(2017,1,1) #Uncomment for fast testing!
 
 loop = asyncio.get_event_loop()  # for more information on this visit: https://docs.python.org/3/library/asyncio.html
 ids = loop.run_until_complete(get_availability(start_date, end_date))  # much faster then just iterating over the
@@ -378,10 +380,11 @@ def appendToNetCDF(nc_name, path_name, Devices, dates=dates):
     time_fill = np.asarray(time_fill, dtype="f8")  # when reading them later.
     strftime = np.asarray(strftime, dtype="S8")
 
-    nc_length_old = len(nc.variables['time'])
+    nc_length_old = len(nc.variables['time']) - 32
     nc_length_new = len(dates) + nc_length_old
     # print(nc_length_old,nc_length_new)
     for i, j in zip(range(nc_length_old, nc_length_new), range(len(time_fill))):
+        # print(i,j)
         nc.variables['time'][i] = time_fill[j]
         nc.variables['strftime'][i] = strftime[j]
         # print(i,j,nc.variables['strftime'][i])
