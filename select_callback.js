@@ -3,7 +3,7 @@
 //
 // @author: Tobias Machnitzki (tobias.machnitzki@mpimet.mpg.de)
 
-var vbars = [vbar0,vbar1,vbar2,vbar3,vbar4,vbar5,vbar6,vbar7,vbar8,vbar9,vbar10,vbar11,vbar12];
+var vbars = [vbar0,vbar1,vbar2,vbar3,vbar4,vbar5,vbar6,vbar7,vbar8,vbar9,vbar10,vbar11,vbar12,vbar13];
 var selected_line_width = 1;
 
 if (isNaN(cb_obj.value)) {  //checks if the selected Value is an integer. e.g 2017

@@ -19,6 +19,7 @@ if (button == "Ceilometer") {page="http://bcoweb.mpimet.mpg.de/quicklooks/ceilom
 if (button == "WindLidar") {page="http://bcoweb.mpimet.mpg.de/quicklooks/windlidar/wl_yesterday.png"}
 if (button == "EARLI") {page="http://barbados.mpimet.mpg.de/lidarql/YESTERDAY.pdf"}
 if (button == "LICHT") {page="http://lidar.mpimet.mpg.de/lidarql/"}
+if (button == "BCOHAT") {page=""}
 
 if (page==""){
     document.getElementById("buttonInfo").innerHTML = "There is no quicklook for the " + cb_obj.label + " yet.";

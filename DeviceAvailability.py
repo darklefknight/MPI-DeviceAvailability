@@ -36,10 +36,10 @@ NC_PATH = ""
 MBR2_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/16_Cloud_radar_MBR2/"
 WindLidar_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/15_Wind_lidar/Proc/"
 Allsky_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/1_Allskyimager/data/"
-Ceilometer_path = "/data/mpi/mpiaes/obs/ACPC/Ceilometer/"
-HATPRO_path = "/data/mpi/mpiaes/obs/ACPC/HATPRO/level0/"
+Ceilometer_path = "/pool/OBS/ACPC/Ceilometer/"
+HATPRO_path = "/pool/OBS/ACPC/HATPRO/level0/"
 KATRIN_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/5_Cloud_radar_KATRIN/data/"
-KIT_path = "/data/mpi/mpiaes/obs/ACPC/KIT-WORA/Data/"
+KIT_path = "/pool/OBS/ACPC/KIT-WORA/Data/"
 MRR_path1 = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/7_Rain_radar_MRR/DeeblesPoint_201004-201501/"
 MRR_path2 = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/7_Rain_radar_MRR/DeeblesPoint_201502-today/"
 WxSensor_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/12_Weathersensors/"
@@ -48,6 +48,7 @@ Disdro_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/17_Disdrometer/"
 RamanLidar_path = "/data/mpi/mpiaes/obs/ACPC/RamanLidar-LICHT/HiRes/preProcessed/"  # TODO: Add the right Path
 EARLI_path = "./EARLI_Coverage.txt"
 LICHT_path = "./LICHT_Coverage.txt"
+BCOHAT_path = "/pool/OBS/ACPC/BCOHAT/level0/"
 
 Devices = []
 
@@ -98,6 +99,7 @@ Radiation = Device('Radiation', 'Radiation Sensors', Radiation_path)
 Disdro = Device('Disdro', 'Disdrometer', Disdro_path)
 EARLI = Device('EARLI','EARLI Lidar',EARLI_path)
 LICHT = Device('LICHT','LICHT Lidar',LICHT_path)
+BCOHAT = Device('BCOHAT','BCOHAT',BCOHAT_path)
 
 def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
@@ -248,6 +250,13 @@ async def get_availability(start_date, end_date):
             LICHT._AvailabilityAppend(1)
         else:
             LICHT._AvailabilityAppend(0)
+
+            # Check for BCOHAT:
+        BCOHAT_file = glob.glob(BCOHAT_path + year_str + "/" + month_str + "/" + day_str + "/*" + date_str[2:] + "*")
+        if len(BCOHAT_file) >= 1:
+            BCOHAT._AvailabilityAppend(1)
+        else:
+            BCOHAT._AvailabilityAppend(0)
 
 
 

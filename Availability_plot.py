@@ -24,8 +24,8 @@ Barbados (BCO) site. It therefore needs the netCDF4 file created by the DeviceAv
 import numpy as np
 from bokeh.io import curdoc, show
 from bokeh.models import Range1d, DatetimeTickFormatter, ColumnDataSource, CustomJS, Legend
-from bokeh.models.widgets import Select, Button
-from bokeh.layouts import gridplot, column, widgetbox, column, row, layout
+from bokeh.models.widgets import Select, Button, Slider
+from bokeh.layouts import gridplot, widgetbox, column, row, layout
 from bokeh.plotting import figure
 from bokeh.embed import components
 from bokeh.events import ButtonClick, Tap, LODStart
@@ -75,11 +75,18 @@ Radiation = nc.variables['Radiation'][:].copy().astype(float) * height
 Disdro = nc.variables['Disdro'][:].copy().astype(float) * height
 EARLI = nc.variables['EARLI'][:].copy().astype(float) * height
 LICHT = nc.variables['LICHT'][:].copy().astype(float) * height
+BCOHAT = nc.variables['BCOHAT'][:].copy().astype(float) * height
 
 # creating lists for easy acces within loops:
-Devices = [Allsky, WxSensor, Radiation, Disdro, HATPRO, KIT, KATRIN, MBR2, MRR, Ceilometer, WindLidar, EARLI, LICHT]
-Devices_names = ['Allsky', 'Weather', 'Radiation', 'Disdro', 'HATPRO', 'KIT', 'KATRIN', 'MBR2', 'MRR', 'Ceilometer',
+# !!!! BOTH LISTS HAVE TO HAVE THE SAME ORDER OF DEVICES !!!!
+Devices = [Allsky, WxSensor, Radiation, Disdro, HATPRO,BCOHAT, KIT, KATRIN, MBR2, MRR, Ceilometer, WindLidar, EARLI, LICHT]
+Devices_names = ['Allsky', 'Weather', 'Radiation', 'Disdro', 'HATPRO','BCOHAT', 'KIT', 'KATRIN', 'MBR2', 'MRR', 'Ceilometer',
                  'WindLidar', 'EARLI', 'LICHT']
+
+# appending zeros for nicer plotting:
+append_me = np.zeros([1]).astype(float)
+for i,Device in enumerate(Devices):
+    Devices[i] = np.concatenate((Device,append_me))
 
 nc.close()
 
@@ -90,7 +97,8 @@ colors = dict(
     Weather='#FD8F3A',
     Radiation='#CE5A02',
     Disdro='#9F4D0F',
-    HATPRO='#653510',
+    HATPRO='#AE0D7A',
+    BCOHAT='#7D0D59',
     KIT='#7896E8',
     KATRIN='#396EFE',
     MBR2='#013EE4',
@@ -104,20 +112,21 @@ colors = dict(
 # creating a general data-source:
 source = ColumnDataSource(
     data=dict(x=dates,
-              Allsky=Allsky,
-              Ceilometer=Ceilometer,
-              HATPRO=HATPRO,
-              KIT=KIT,
-              KATRIN=KATRIN,
-              MBR2=MBR2,
-              MRR=MRR,
-              WindLidar=WindLidar,
+              Allsky=Devices[Devices_names.index('Allsky')],
+              Ceilometer=Devices[Devices_names.index('Ceilometer')],
+              HATPRO=Devices[Devices_names.index('HATPRO')],
+              KIT=Devices[Devices_names.index('KIT')],
+              KATRIN=Devices[Devices_names.index('KATRIN')],
+              MBR2=Devices[Devices_names.index('MBR2')],
+              MRR=Devices[Devices_names.index('MRR')],
+              WindLidar=Devices[Devices_names.index('WindLidar')],
               # RamanLidar=RamanLidar,
-              Weather=WxSensor,
-              Radiation=Radiation,
-              Disdro=Disdro,
-              EARLI=EARLI,
-              LICHT=LICHT))
+              Weather=Devices[Devices_names.index('Weather')],
+              Radiation=Devices[Devices_names.index('Radiation')],
+              Disdro=Devices[Devices_names.index('Disdro')],
+              EARLI=Devices[Devices_names.index('EARLI')],
+              LICHT=Devices[Devices_names.index('LICHT')],
+              BCOHAT=Devices[Devices_names.index('BCOHAT')]))
 
 # creating a data-source for the select-dropdown list:
 last_date = np.asarray(mdate.num2epoch(mdate.date2num(dates[:])))
@@ -126,19 +135,19 @@ last_date_source = ColumnDataSource(data=dict(x=last_date))
 # ================Set up plot=======================
 years = end_date.year - start_date.year + 1  # Defines the complete timerange
 
-xmax = dates[-1]
+xmax = dates[-1] + timedelta(days=1)
 xmin = BCO_START_DATE
 
 toolbox = "xbox_zoom,undo"  # which
 p1 = figure(title=Devices_names[0], tools=toolbox, x_range=Range1d(start=xmin, end=xmax), y_range=(0.5, 1.5),
             responsive=True, x_axis_type='datetime')  # set up the first plot
 
-p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13 = [
+p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14 = [
     figure(title=Devices_names[i + 1], tools=toolbox, x_range=p1.x_range, y_range=p1.y_range, responsive=True,
            x_axis_type='datetime')
     for i in range(len(Devices) - 1)]  # set up all other plots, sharing the x and y-axis with p1
 
-p_list = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13]
+p_list = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14]
 
 p1.x_range.min_interval = timedelta(days=14)  # maximal allowed zoom-in
 p1.x_range.max_interval = timedelta(days=len(dates))  # maximal allowed zoom-out
@@ -199,7 +208,28 @@ menu1 = ["last 365 days", "last 30 days", "Complete Timerange"] + ["%i" % (i + s
 select = Select(title="Select Timerange", value=("Complete Timerange"),options=menu1)  # create the select-dropdown-menu
 select.width = 200
 
-Buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = [Button(
+
+slider_callback = CustomJS(args=dict(vbar0=vbar_list[0],
+                                     vbar1=vbar_list[1],
+                                     vbar2=vbar_list[2],
+                                     vbar3=vbar_list[3],
+                                     vbar4=vbar_list[4],
+                                     vbar5=vbar_list[5],
+                                     vbar6=vbar_list[6],
+                                     vbar7=vbar_list[7],
+                                     vbar8=vbar_list[8],
+                                     vbar9=vbar_list[9],
+                                     vbar10=vbar_list[10],
+                                     vbar11=vbar_list[11],
+                                     vbar12=vbar_list[12],
+                                     vbar13=vbar_list[13],)
+                           ,code=open("slider_callback.js").read())
+width_slider = Slider(start=1,end=20,value=1,step=1,title="Bar width")
+# slider_callback.args["width"] = width_slider
+width_slider.js_on_change('value',slider_callback)
+
+
+Buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14] = [Button(
     name=dev_name,
     label=dev_name,
     button_type="success",
@@ -210,7 +240,8 @@ Buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13] = [Button(
 
 grid1 = gridplot([[b, x] for b, x in zip(Buttons, p_list)])  # builds a grid from all plots and the select-menu
 
-grid = column(select, grid1)
+widgets = row(select,width_slider)
+grid = column(widgets, grid1)
 
 # change window to selection:
 callback_select = CustomJS(args=dict(xr=p1.x_range, source=last_date_source,
@@ -227,6 +258,7 @@ callback_select = CustomJS(args=dict(xr=p1.x_range, source=last_date_source,
                                      vbar10=vbar_list[10],
                                      vbar11=vbar_list[11],
                                      vbar12=vbar_list[12],
+                                     vbar13=vbar_list[13],
                                      ), code=open("select_callback.js").read())
 
 select.js_on_change('value', callback_select)
