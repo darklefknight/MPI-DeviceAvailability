@@ -66,7 +66,7 @@ Ceilometer = nc.variables['Ceilometer'][:].copy().astype(float) * height
 HATPRO = nc.variables['HATPRO'][:].copy().astype(float) * height
 KIT = nc.variables['KIT'][:].copy().astype(float) * height
 KATRIN = nc.variables['KATRIN'][:].copy().astype(float) * height
-MBR2 = nc.variables['MBR2'][:].copy().astype(float) * height
+CORAL = nc.variables['CORAL'][:].copy().astype(float) * height
 MRR = nc.variables['MRR'][:].copy().astype(float) * height
 WindLidar = nc.variables['WindLidar'][:].copy().astype(float) * height
 # RamanLidar = nc.variables['RamanLidar'][:].copy().astype(float)*height
@@ -79,8 +79,8 @@ BCOHAT = nc.variables['BCOHAT'][:].copy().astype(float) * height
 
 # creating lists for easy acces within loops:
 # !!!! BOTH LISTS HAVE TO HAVE THE SAME ORDER OF DEVICES !!!!
-Devices = [Allsky, WxSensor, Radiation, Disdro, HATPRO,BCOHAT, KIT, KATRIN, MBR2, MRR, Ceilometer, WindLidar, EARLI, LICHT]
-Devices_names = ['Allsky', 'Weather', 'Radiation', 'Disdro', 'HATPRO','BCOHAT', 'KIT', 'KATRIN', 'MBR2', 'MRR', 'Ceilometer',
+Devices = [Allsky, WxSensor, Radiation, Disdro, HATPRO,BCOHAT, KIT, KATRIN, CORAL, MRR, Ceilometer, WindLidar, EARLI, LICHT]
+Devices_names = ['Allsky', 'Weather', 'Radiation', 'Disdro', 'HATPRO','BCOHAT', 'KIT', 'KATRIN', 'CORAL', 'MRR', 'Ceilometer',
                  'WindLidar', 'EARLI', 'LICHT']
 
 # appending zeros for nicer plotting:
@@ -101,7 +101,7 @@ colors = dict(
     BCOHAT='#7D0D59',
     KIT='#7896E8',
     KATRIN='#396EFE',
-    MBR2='#013EE4',
+    CORAL='#013EE4',
     MRR='#143AA3',
     Ceilometer='#B5E195',
     WindLidar='#82CD4C',
@@ -117,7 +117,7 @@ source = ColumnDataSource(
               HATPRO=Devices[Devices_names.index('HATPRO')],
               KIT=Devices[Devices_names.index('KIT')],
               KATRIN=Devices[Devices_names.index('KATRIN')],
-              MBR2=Devices[Devices_names.index('MBR2')],
+              CORAL=Devices[Devices_names.index('CORAL')],
               MRR=Devices[Devices_names.index('MRR')],
               WindLidar=Devices[Devices_names.index('WindLidar')],
               # RamanLidar=RamanLidar,

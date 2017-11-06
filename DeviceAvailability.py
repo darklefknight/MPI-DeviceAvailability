@@ -33,7 +33,7 @@ NC_NAME = 'Availability.nc'
 NC_PATH = ""
 
 # Define Paths:
-MBR2_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/16_Cloud_radar_MBR2/"
+CORAL_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/16_Cloud_radar_MBR2/"
 WindLidar_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/15_Wind_lidar/Proc/"
 Allsky_path = "/pool/OBS/BARBADOS_CLOUD_OBSERVATORY/Level_0/1_Allskyimager/data/"
 Ceilometer_path = "/pool/OBS/ACPC/Ceilometer/"
@@ -90,7 +90,7 @@ Ceilometer = Device('Ceilometer', 'Ceilometer', Ceilometer_path)
 HATPRO = Device('HATPRO', 'Microwave Radiometer HATPRO', HATPRO_path)
 KIT = Device('KIT', 'Cloud Radar KIT', KIT_path)
 KATRIN = Device('KATRIN', 'Cloud Radar KATRIN', KATRIN_path)
-MBR2 = Device('MBR2', 'Cloud Radar MBR2', MBR2_path)
+CORAL = Device('CORAL', 'Cloud Radar CORAL', CORAL_path)
 MRR = Device('MRR', 'Micro Rain Radar MRR', MRR_path2)
 WindLidar = Device('WindLidar', 'Wind Lidar', WindLidar_path)
 RamanLidar = Device('RamanLidar', 'Raman Lidar', RamanLidar_path)
@@ -176,11 +176,11 @@ async def get_availability(start_date, end_date):
         else:
             KIT._AvailabilityAppend(0)
 
-            # Check for MBR2:
-        if os.path.isdir(MBR2_path + date_str):
-            MBR2._AvailabilityAppend(1)
+            # Check for CORAL:
+        if os.path.isdir(CORAL_path + date_str):
+            CORAL._AvailabilityAppend(1)
         else:
-            MBR2._AvailabilityAppend(0)
+            CORAL._AvailabilityAppend(0)
 
             # Check for MRR:
         MRR_file1 = glob.glob(MRR_path1 + year_str + month_str + "/" + month_str + day_str + ".*")

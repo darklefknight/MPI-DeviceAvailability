@@ -13,7 +13,7 @@ if (button == "Disdro") {page="http://bcoweb.mpimet.mpg.de/quicklooks/disdromete
 if (button == "HATPRO") {page=""}
 if (button == "KIT") {page="NOT RUNNING"}
 if (button == "KATRIN") {page="NOT RUNNING"}
-if (button == "MBR2") {page="http://bcoweb.mpimet.mpg.de/quicklooks/mbr2ql/MBR2_QL.png"}
+if (button == "CORAL") {page="http://bcoweb.mpimet.mpg.de/quicklooks/mbr2ql/MBR2_QL.png"}
 if (button == "MRR") {page="http://bcoweb.mpimet.mpg.de/quicklooks/mrr-bco/mrr_yesterday.png"}
 if (button == "Ceilometer") {page="http://bcoweb.mpimet.mpg.de/quicklooks/ceilometer/ceilo_ql.png"}
 if (button == "WindLidar") {page="http://bcoweb.mpimet.mpg.de/quicklooks/windlidar/wl_yesterday.png"}
